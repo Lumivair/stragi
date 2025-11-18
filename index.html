@@ -1,13 +1,43 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-<title>Page Title</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>stragi.gay</title>
+  <style>
+    /* Reset body so image touches the edges */
+    html,body {
+      height: 100%;
+      margin: 0;
+      background: #000; /* fallback while image loads */
+    }
+
+    /* Container keeps things centered if you want content later */
+    .wrap {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    /* The image: full width, auto height so aspect ratio stays correct */
+    img.full-width {
+      display: block;
+      width: 100%;
+      height: auto;
+      max-width: none; /* ensure it doesn't get constrained */
+    }
+
+    /* Optional: remove selection and image dragging on desktop */
+    img.full-width {
+      -webkit-user-drag: none;
+      user-select: none;
+    }
+  </style>
 </head>
 <body>
-
-<h1>My First Heading</h1>
-<p>My first paragraph.</p>
-
+  <main class="wrap" role="main">
+    <img class="full-width" src="stragi.png" alt="Stragi">
+  </main>
 </body>
 </html>
-
