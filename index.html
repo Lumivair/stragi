@@ -5,39 +5,29 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>stragi.gay</title>
   <style>
-    /* Reset body so image touches the edges */
-    html,body {
+    html, body {
       height: 100%;
       margin: 0;
-      background: #000; /* fallback while image loads */
+      background: #ffffff; /* white background */
     }
 
-    /* Container keeps things centered if you want content later */
-    .wrap {
-      width: 100%;
+    /* Center everything */
+    body {
       display: flex;
-      justify-content: center;
-      align-items: flex-start;
+      justify-content: center;  /* horizontal center */
+      align-items: center;      /* vertical center */
     }
 
-    /* The image: full width, auto height so aspect ratio stays correct */
-    img.full-width {
+    img.pixel {
+      width: 100%;       /* full width */
+      height: auto;      /* keep aspect ratio */
+      image-rendering: pixelated;     /* force pixel style */
+      image-rendering: crisp-edges;   /* fallback */
       display: block;
-      width: 100%;
-      height: auto;
-      max-width: none; /* ensure it doesn't get constrained */
-    }
-
-    /* Optional: remove selection and image dragging on desktop */
-    img.full-width {
-      -webkit-user-drag: none;
-      user-select: none;
     }
   </style>
 </head>
 <body>
-  <main class="wrap" role="main">
-    <img class="full-width" src="stragi.png" alt="Stragi">
-  </main>
+  <img class="pixel" src="stragi.png" alt="Stragi">
 </body>
 </html>
