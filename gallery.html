@@ -12,15 +12,21 @@
     .content-wrapper { padding: 20px; }
     h1 { text-align: center; margin: 0 0 24px 0; font-weight:600; }
     .masonry-wrapper { column-count: 4; column-gap: var(--gap); }
-    .media-card { background: var(--card-bg); border-radius: var(--radius); overflow: hidden; display: block; cursor: pointer; position: relative; transition: transform 0.2s ease; break-inside: avoid; margin-bottom: var(--gap); min-height:120px; }
+    .media-card { background: var(--card-bg); border-radius: var(--radius); overflow: hidden; display: block; cursor: pointer; position: relative; transition: transform 0.2s ease; break-inside: avoid; margin-bottom: var(--gap); min-height:120px; text-decoration: none;}
     .media-card:hover { transform: translateY(-2px); }
     .media-card img, .media-card video{ display:block; width:100%; height:auto; vertical-align: middle; border: 0; background: #222; }
     .media-card .placeholder { padding: 48px 12px; text-align:center; color:#999; font-size:14px; }
+    
+    /* New styles for the video generic thumbnail card */
+    .vid-poster { display:flex; flex-direction:column; align-items:center; justify-content:center; background:#1a1a1d; height: 180px; color:#eee; }
+    .vid-icon { font-size: 40px; margin-bottom:10px; opacity: 0.8; }
+    .vid-label { font-size: 12px; color:#888; }
+
     .media-card video{ filter:brightness(.95); }
     .play-badge{ position:absolute; inset:auto 8px 8px 8px; display:flex; justify-content:flex-end; pointer-events:none; }
     #lightbox{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; background: rgba(0,0,0,0.95); z-index:9999; padding:10px; }
     #lightbox.active{ display:flex; }
-    .lightbox-inner{ max-width:100%; max-height:100%; width:100%; height:100%; display:flex; align-items:center; justify-content:center; }
+    .lightbox-inner{ max-width:100%; max-height:100%; width:100%; height:100%; display:flex; align-items:center; justify-content:center; flex-direction: column; }
     .lightbox-inner img, .lightbox-inner video{ max-width:100vw; max-height:100vh; width:100%; height:100%; object-fit:contain; border-radius:0; box-shadow:none; }
     .lb-close{ position:fixed; top:18px; right:18px; z-index:10000; background:rgba(255,255,255,0.1); color:#fff; border:0; padding:8px 12px; border-radius:8px; cursor:pointer; font-size:16px; }
     .offline-banner { text-align:center; padding: 10px; background: #880000; color: #fff; font-weight:600; display:none; }
@@ -28,6 +34,11 @@
     .password-box { background: #0b0b0d; padding:20px; border-radius:12px; min-width:280px; box-shadow: 0 6px 30px rgba(0,0,0,0.6); }
     .password-box input { width:100%; padding:10px; border-radius:8px; border:1px solid #222; background:#111; color:#fff; margin-bottom:8px; }
     .password-box button { width:100%; padding:10px; border-radius:8px; border:0; background:#1e90ff; color:#fff; cursor:pointer; }
+    
+    /* Loading spinner for lightbox */
+    .loader { border: 4px solid #333; border-top: 4px solid #fff; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 15px; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
     @media (max-width: 1200px) { .masonry-wrapper { column-count: 3; } }
     @media (max-width: 800px) { .masonry-wrapper { column-count: 2; } }
     @media (max-width: 500px) { .masonry-wrapper { column-count: 1; :root{ --gap:12px } } }
@@ -46,7 +57,6 @@
     <div class="lightbox-inner" id="lightboxInner"></div>
   </div>
 
-  <!-- Password modal (shown when no token) -->
   <div class="password-overlay" id="passwordOverlay" style="display:none;">
     <div class="password-box">
       <div style="margin-bottom:10px;color:#ddd">Enter password to view images</div>
@@ -57,8 +67,8 @@
   </div>
 
   <script>
-  // CONFIG - replace with your backend domain (the one fronted by Cloudflare tunnel)
-  const BACKEND_ORIGIN = "https://api.stragi.gay"; // <-- change to your backend URL (https)
+  // CONFIG - replace with your backend domain
+  const BACKEND_ORIGIN = "https://api.stragi.gay"; 
   const HEALTH_URL = BACKEND_ORIGIN + "/health";
   const AUTH_URL = BACKEND_ORIGIN + "/auth";
   const MEDIA_LIST_URL = BACKEND_ORIGIN + "/media-list";
@@ -74,7 +84,6 @@
   const pwBtn = document.getElementById('pwBtn');
   const pwMsg = document.getElementById('pwMsg');
 
-  // store token in sessionStorage so it survives reloads in the same tab (optional)
   function saveToken(token, expires_at) {
     sessionStorage.setItem('media_token', token);
     sessionStorage.setItem('media_token_exp', String(expires_at || (Date.now()/1000 + 3600)));
@@ -107,7 +116,7 @@
     }
   }
 
-  // authenticate with password (POST JSON)
+  // authenticate
   async function authenticate(password) {
     try {
       const res = await fetch(AUTH_URL, {
@@ -131,7 +140,7 @@
     }
   }
 
-  // fetch media list (names + type)
+  // fetch media list
   async function fetchMediaList(token) {
     const res = await fetch(MEDIA_LIST_URL, {
       headers: { "Authorization": "Bearer " + token }
@@ -143,19 +152,17 @@
     return res.json();
   }
 
-  // fetch a media file as a blob with Authorization header, returns object URL
+  // fetch a media file as a blob
   async function fetchMediaBlobUrl(filename, token) {
     const res = await fetch(MEDIA_URL_BASE + encodeURIComponent(filename), {
       headers: { "Authorization": "Bearer " + token }
     });
     if (!res.ok) throw new Error("media-fetch-failed");
     const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    return url;
+    return URL.createObjectURL(blob);
   }
 
-  // lazy loader for blobs – create placeholders first, then load when in viewport
-  let mediaItems = []; // will contain {name,type,el,loaded}
+  let mediaItems = []; // {name, type, el, loaded, blobUrl}
 
   function makePlaceholderCard(item, index) {
     const a = document.createElement('a');
@@ -165,7 +172,7 @@
     a.dataset.name = item.name;
     const ph = document.createElement('div');
     ph.className = "placeholder";
-    ph.textContent = item.type === "video" ? "Video • loading..." : "Image • loading...";
+    ph.textContent = item.type === "video" ? "Video" : "Loading Image...";
     a.appendChild(ph);
     a.addEventListener('click', (ev) => {
       ev.preventDefault();
@@ -175,43 +182,47 @@
     return a;
   }
 
+  // Lazy loader: modified to ONLY fetch Images automatically. Videos are skipped to save bandwidth.
   async function loadBlobForIndex(index) {
     const token = getToken();
-    if (!token) return; // no token - don't fetch
+    if (!token) return; 
     const item = mediaItems[index];
     if (!item || item.loaded) return;
+
+    // NEW LOGIC: If it is a video, do NOT fetch the blob. Just show a static poster.
+    if (item.type === "video") {
+        const el = item.el;
+        el.innerHTML = `
+            <div class="vid-poster">
+                <div class="vid-icon">▶</div>
+                <span class="vid-label">${item.name}</span>
+            </div>
+        `;
+        // We mark it as "loaded" for the grid's purpose (UI is ready), 
+        // but we leave item.blobUrl undefined so lightbox knows to fetch it later.
+        item.loaded = true; 
+        return; 
+    }
+
+    // If Image: Fetch it now
     try {
       const blobUrl = await fetchMediaBlobUrl(item.name, token);
       item.blobUrl = blobUrl;
-      // swap placeholder with proper element
       const el = item.el;
       el.innerHTML = "";
-      if (item.type === "image") {
-        const img = document.createElement('img');
-        img.src = blobUrl;
-        img.alt = item.name;
-        img.loading = "lazy";
-        el.appendChild(img);
-      } else {
-        const vid = document.createElement('video');
-        vid.src = blobUrl;
-        vid.preload = "metadata";
-        vid.playsInline = true;
-        vid.muted = true;
-        vid.loop = true;
-        el.appendChild(vid);
-      }
+      const img = document.createElement('img');
+      img.src = blobUrl;
+      img.alt = item.name;
+      img.loading = "lazy";
+      el.appendChild(img);
       item.loaded = true;
     } catch (err) {
       console.warn("failed to fetch media:", item.name, err);
-      // if backend offline or forbidden -> indicate offline
-      if (!(await checkBackend())) {
-        // show offline banner handled by checkBackend
-      }
+      if (!(await checkBackend())) {}
     }
   }
 
-  // Intersection observer to lazy-load when visible
+  // Intersection observer
   const io = new IntersectionObserver((entries) => {
     for (const e of entries) {
       if (e.isIntersecting) {
@@ -220,7 +231,7 @@
         io.unobserve(e.target);
       }
     }
-  }, {rootMargin: "500px 0px"}); // preload a bit ahead
+  }, {rootMargin: "500px 0px"});
 
   async function buildGallery(list) {
     container.innerHTML = "";
@@ -232,29 +243,40 @@
     });
   }
 
-  // Lightbox functions: when opening, ensure we use blobUrls (if not loaded, fetch)
+  // Lightbox: modified to fetch Video blob on demand
   let currentIndex = -1;
   async function openLightbox(index) {
     if (index < 0 || index >= mediaItems.length) return;
     currentIndex = index;
     const item = mediaItems[index];
     lightboxInner.innerHTML = "";
-    if (!item.loaded) {
-      // fetch immediately for lightbox
+    
+    lightbox.classList.add('active');
+    lightbox.setAttribute('aria-hidden','false');
+
+    // Check if we have the blob. Videos won't have it yet.
+    if (!item.blobUrl) {
+      // Show loading UI
+      lightboxInner.innerHTML = `
+        <div class="loader"></div>
+        <div style="color:#ccc">Loading full media...</div>
+      `;
+      
       try {
         const token = getToken();
         if (!token) throw new Error("no-token");
         const blobUrl = await fetchMediaBlobUrl(item.name, token);
         item.blobUrl = blobUrl;
-        item.loaded = true;
+        // Update grid item if it was an image that failed before? 
+        // For videos, we don't update grid to keep it lightweight.
       } catch (err) {
-        // fallback to error
-        lightboxInner.innerHTML = "<div style='color:#fff'>Unable to load media.</div>";
-        lightbox.classList.add('active');
-        lightbox.setAttribute('aria-hidden','false');
+        lightboxInner.innerHTML = "<div style='color:#f88'>Unable to load media.</div>";
         return;
       }
     }
+
+    // Clear loader and show content
+    lightboxInner.innerHTML = "";
 
     if (item.type === "image") {
       const img = document.createElement('img');
@@ -270,9 +292,6 @@
       lightboxInner.appendChild(vid);
       setTimeout(()=>{ vid.play().catch(()=>{}); }, 40);
     }
-
-    lightbox.classList.add('active');
-    lightbox.setAttribute('aria-hidden','false');
   }
 
   function closeLightbox() {
@@ -283,7 +302,6 @@
     lightboxInner.innerHTML = '';
   }
 
-  // close handlers
   lbClose.addEventListener('click', closeLightbox);
   window.addEventListener('keydown', (ev) => {
     if (!lightbox.classList.contains('active')) return;
@@ -321,18 +339,15 @@
         clearToken();
         passwordOverlay.style.display = "flex";
       } else {
-        // try detect offline
         await checkBackend();
       }
     }
   }
 
-  // Startup: check backend and token. If token ok -> load list. Otherwise show password modal.
   (async function init(){
     const backendUp = await checkBackend();
     const token = getToken();
     if (!backendUp) {
-      // no backend -> still show skeleton and offline banner
       passwordOverlay.style.display = "none";
       container.innerHTML = "<div style='color:#999;padding:20px;text-align:center'>Backend offline — images cannot be loaded.</div>";
       return;
