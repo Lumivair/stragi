@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gallery - DSG</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --card: #ffffff;
+      --text: #111214;
+      --muted: #4b5563;
+      --accent: #0b5fff;
+      --radius: 12px;
+      --maxw: 860px;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+    }
+
+    html,body{
+      height:100%;
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    .wrap{
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:28px;
+    }
+
+    .card{
+      width:100%;
+      max-width:var(--maxw);
+      background:var(--card);
+      border-radius:var(--radius);
+      box-shadow: 0 8px 24px rgba(17,18,20,0.06);
+      padding:28px;
+      box-sizing:border-box;
+    }
+
+    header h1{
+      margin:0 0 10px 0;
+      font-size:1.25rem;
+      letter-spacing: -0.02em;
+    }
+
+    .body {
+      font-size:1rem;
+      line-height:1.6;
+      color:var(--muted);
+    }
+
+    .body p { margin: 0 0 0.9rem 0; }
+
+    footer {
+      margin-top:16px;
+      font-size:0.9rem;
+      color: #6b7280;
+    }
+
+    @media (prefers-reduced-motion: no-preference){
+      .card { transform: translateY(0); transition: transform .18s ease; }
+      .card:focus-within { transform: translateY(-4px); }
+    }
+
+    @media (max-width:420px){
+      .card{ padding:18px; border-radius:10px; }
+      header h1{ font-size:1.05rem; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap" role="main" aria-label="Ankündigung">
+    <section class="card" aria-labelledby="ann-title">
+      <header>
+        <h1 id="ann-title"></h1>
+      </header>
+
+      <div class="body" role="article">
+        <p>
+          Aufgrund eines formellen Antrags nach den Vorgaben des Bundesgesetzes über den Datenschutz (DSG) sowie den Bestimmungen zum Persönlichkeitsschutz gemäss Art. 28 ff. ZGB wurde der an dieser Stelle veröffentlichte Inhalt, welcher Herrn Sebastian Nehrlich betraf, aus dem Angebot entfernt.
+        </p>
+
+        <p>
+          Der Schritt erfolgt im Rahmen der gesetzlich vorgesehenen Massnahmen zur Abwehr und Beseitigung möglicher Persönlichkeitsverletzungen. Bis zur abschliessenden Klärung des Sachverhalts werden keine weiteren Angaben zum entfernten Material bereitgestellt.
+        </p>
+
+        <p>
+          Wir danken für Ihr Verständnis.
+        </p>
+      </div>
+
+      <footer aria-hidden="true">
+        &copy; 2025 &nbsp;
+      </footer>
+    </section>
+  </main>
+</body>
+</html>
