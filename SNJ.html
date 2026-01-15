@@ -1,1 +1,182 @@
-#stargi
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SNJ</title>
+  <meta name="description" content="SNJ simple audio player" />
+
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --accent: #6366f1;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      height: 100%;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: linear-gradient(135deg, #020617, var(--bg));
+      color: var(--text);
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 420px;
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 1.4rem;
+      text-align: center;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    .player {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 12px 18px;
+      background: var(--accent);
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    button:hover { opacity: 0.9; }
+
+    .progress {
+      height: 6px;
+      background: #1f2937;
+      border-radius: 999px;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .bar {
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+    }
+
+    .time {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .links {
+      margin-top: 16px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+    }
+
+    a {
+      color: var(--muted);
+      text-decoration: none;
+    }
+
+    a:hover { color: var(--text); }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>SNJ</h1>
+    <div class="subtitle">Simple audio player</div>
+
+    <!-- Audio file is loaded from website root /media folder -->
+    <audio id="audio" src="media/efn-stargi.mp3"></audio>
+
+    <div class="player">
+      <button id="play">Play</button>
+
+      <div class="progress" id="progress">
+        <div class="bar" id="bar"></div>
+      </div>
+
+      <div class="time">
+        <span id="current">0:00</span>
+        <span id="duration">0:00</span>
+      </div>
+    </div>
+
+    <div class="links">
+      <a href="/">← Home</a>
+      <a href="media/efn-stargi.mp3" download>Download</a>
+    </div>
+  </div>
+
+  <script>
+    const audio = document.getElementById('audio');
+    const playBtn = document.getElementById('play');
+    const progress = document.getElementById('progress');
+    const bar = document.getElementById('bar');
+    const current = document.getElementById('current');
+    const duration = document.getElementById('duration');
+
+    function format(t) {
+      if (isNaN(t)) return '0:00';
+      const m = Math.floor(t / 60);
+      const s = Math.floor(t % 60).toString().padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    playBtn.onclick = () => {
+      if (audio.paused) {
+        audio.play();
+        playBtn.textContent = 'Pause';
+      } else {
+        audio.pause();
+        playBtn.textContent = 'Play';
+      }
+    };
+
+    audio.onloadedmetadata = () => {
+      duration.textContent = format(audio.duration);
+    };
+
+    audio.ontimeupdate = () => {
+      current.textContent = format(audio.currentTime);
+      bar.style.width = (audio.currentTime / audio.duration) * 100 + '%';
+    };
+
+    progress.onclick = e => {
+      const rect = progress.getBoundingClientRect();
+      const percent = (e.clientX - rect.left) / rect.width;
+      audio.currentTime = percent * audio.duration;
+    };
+  </script>
+
+</body>
+</html>
