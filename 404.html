@@ -1,177 +1,244 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>404 - Lost in the Jungle</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background: #1a1a1a;
-            color: #4da6ff;
-            font-family: 'Courier New', Courier, monospace;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-        }
-        #ui {
-            position: absolute;
-            top: 20px;
-            text-align: center;
-            pointer-events: none;
-        }
-        canvas {
-            border: 2px solid #4da6ff;
-            background: #000;
-            box-shadow: 0 0 20px rgba(77, 166, 255, 0.2);
-            cursor: crosshair;
-        }
-        .controls {
-            margin-top: 10px;
-            color: #888;
-            font-size: 0.8rem;
-        }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>404 — Page Not Found</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700;900&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg-top:#041226;--bg-bottom:#03101a;--accent:#4fe6ff;--muted:#9fb7c9;--card-glass:rgba(255,255,255,0.02);--shadow:0 30px 80px rgba(2,6,23,0.7);--fps-default:7}
+    *{box-sizing:border-box}html,body{height:100%}body{margin:0;font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,Arial;background: linear-gradient(180deg,var(--bg-top) 0%, var(--bg-bottom) 80%);color:#e6f7ff;display:flex;align-items:center;justify-content:center;padding:36px;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+
+    .card{width:100%;max-width:1200px;border-radius:20px;padding:36px;background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));box-shadow:var(--shadow);display:grid;grid-template-columns:1fr 560px;gap:32px;align-items:center;position:relative;overflow:hidden}
+
+    .content{padding:8px 6px;z-index:30}
+    .kicker{display:inline-block;font-weight:800;color:var(--accent);background: linear-gradient(90deg, rgba(79,230,255,0.08), rgba(79,230,255,0.02));padding:6px 12px;border-radius:999px;font-size:13px;letter-spacing:0.6px;margin-bottom:14px}
+    h1{margin:0;font-size:96px;line-height:0.9;font-weight:900;color:#dff9ff;text-shadow:0 10px 40px rgba(3,12,20,0.7);letter-spacing:-4px}
+    p.lead{margin:14px 0 0;color:var(--muted);font-size:18px}
+    p.sub{margin-top:14px;color:#9fc7d9;max-width:60ch;font-size:15px}
+
+    .actions{margin-top:22px;display:flex;gap:12px;flex-wrap:wrap}
+    .btn{display:inline-flex;align-items:center;gap:10px;padding:12px 18px;border-radius:12px;text-decoration:none;font-weight:800;color:inherit;border:1px solid rgba(255,255,255,0.04);background: rgba(255,255,255,0.02);backdrop-filter: blur(6px) saturate(1.05);transition: transform .18s ease, box-shadow .18s ease, background .18s ease}
+    .btn:hover{transform: translateY(-5px); box-shadow: 0 14px 40px rgba(3,12,20,0.45)}
+    .btn.primary{background: linear-gradient(90deg, rgba(79,230,255,0.12), rgba(79,230,255,0.06));border: 1px solid rgba(79,230,255,0.18);color: var(--accent)}
+    .btn.ghost{background: transparent;color: var(--muted);border: 1px solid rgba(255,255,255,0.04)}
+
+    .scene{position:relative;height:420px;display:flex;align-items:flex-end;justify-content:center;padding:8px;overflow:visible}
+    .halo{position:absolute;width:520px;height:520px;right:6%;top:-60px;border-radius:50%;background: radial-gradient(circle at 40% 35%, rgba(79,230,255,0.12), rgba(79,230,255,0.02) 40%);filter: blur(28px);mix-blend-mode: screen;pointer-events:none;z-index:25}
+
+    .tiger-wrap{position:relative;width:580px;height:480px;display:flex;align-items:flex-end;justify-content:center;z-index:8;pointer-events:auto}
+
+    canvas#tigerCanvas{image-rendering:pixelated;image-rendering:crisp-edges;filter: drop-shadow(0 28px 40px rgba(2,6,23,0.7)) saturate(1.05) contrast(1.02);cursor:pointer;border-radius:8px;display:block;}
+
+    .tiger-hud{position:absolute;left:8px;top:8px;font-size:12px;color:rgba(255,255,255,0.9);background:rgba(0,0,0,0.12);padding:6px 8px;border-radius:8px;backdrop-filter: blur(4px);display:inline-flex;gap:8px;align-items:center;z-index:60;opacity:0;transform:translateY(-6px);transition:opacity 260ms ease, transform 260ms ease;pointer-events:none}
+    .tiger-hud.visible{opacity:1;transform:translateY(0);pointer-events:auto}
+
+    .ground-wrap{position:absolute;left:0;right:0;bottom:60px;height:180px;overflow:hidden;pointer-events:none;z-index:10}
+
+    .ground-layer{position:absolute;bottom:0;left:0;height:180px;width:2400px;display:flex;align-items:flex-end;transform: translateZ(0)}
+
+    .ground-back,.ground-mid,.ground-front{position:absolute;bottom:0;left:0;right:0;height:180px;width:2400px;background-repeat: repeat-x;will-change: transform}
+    .ground-back{background-image: linear-gradient(180deg, rgba(255,255,255,0.02), transparent), url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="160" viewBox="0 0 1200 160"><path fill="%23061a2a" d="M0 100 C120 60 240 120 360 90 C480 60 600 120 720 90 C840 60 960 120 1080 90 L1200 90 L1200 160 L0 160 Z"/></svg>');background-size: 1200px 160px;opacity:0.85;filter: blur(0.6px) saturate(1.05);z-index:2}
+    .ground-mid{background-image:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(0,0,0,0.02)), url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="160" viewBox="0 0 600 160"><g fill="%230b2a3f"><rect x="20" y="110" width="6" height="6" rx="1"/><rect x="100" y="106" width="8" height="8" rx="1"/><rect x="180" y="114" width="5" height="5" rx="1"/><rect x="300" y="108" width="7" height="7" rx="1"/><rect x="440" y="112" width="6" height="6" rx="1"/></g></svg>');background-size:600px 160px;opacity:0.95;z-index:4}
+    .ground-front{background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="160" viewBox="0 0 600 160"><path fill="%23072b33" d="M0 120 C60 80 120 140 180 110 C240 80 300 140 360 110 C420 80 480 140 540 110 L600 110 L600 160 L0 160 Z"/></svg>');background-size:600px 160px;opacity:1;image-rendering:pixelated;image-rendering:crisp-edges;z-index:12}
+
+    @keyframes scroll-back{from{transform:translateX(-1200px)}to{transform:translateX(0)}}
+    @keyframes scroll-mid{from{transform:translateX(-1200px)}to{transform:translateX(0)}}
+    @keyframes scroll-front{from{transform:translateX(-1200px)}to{transform:translateX(0)}}
+
+    .ground-back{animation:scroll-back 40s linear infinite}
+    .ground-mid{animation:scroll-mid 20s linear infinite}
+    .ground-front{animation:scroll-front 10s linear infinite}
+
+    @media (max-width:980px){.card{grid-template-columns:1fr;padding:22px;gap:18px}.halo{display:none}h1{font-size:72px}.scene{height:340px}.tiger-wrap{width:300px;height:220px}canvas#tigerCanvas{max-width:260px;max-height:260px}}
+
+    .stars{position:absolute;inset:0;z-index:1;pointer-events:none;background-image:radial-gradient(circle at 12% 18%, rgba(255,255,255,0.06) 0 1px, transparent 2px), radial-gradient(circle at 78% 8%, rgba(255,255,255,0.04) 0 1px, transparent 2px), radial-gradient(circle at 46% 62%, rgba(255,255,255,0.03) 0 1px, transparent 2px);mix-blend-mode: screen}
+    .sr-only{position:absolute!important;height:1px;width:1px;overflow:hidden;clip:rect(1px,1px,1px,1px);white-space:nowrap;border:0;padding:0;margin:-1px}
+  </style>
 </head>
 <body>
+  <main class="card" role="main" aria-labelledby="title">
+    <div class="stars" aria-hidden="true"></div>
 
-    <div id="ui">
-        <h1>404 - PAGE NOT FOUND</h1>
-        <p>You wandered too far. Defend your territory.</p>
-        <h2 id="score">Score: 0</h2>
-    </div>
+    <section class="content">
+      <div class="kicker">Lost path</div>
+      <h1 id="title">404</h1>
+      <p class="lead">Looks like this page wandered off. The blue tiger is on patrol — it found everything else but not this.</p>
+      <p class="sub">Tip: follow the tiger, sometimes it knows short-cuts.</p>
 
-    <canvas id="gameCanvas"></canvas>
+      <div class="actions" role="group" aria-label="404 actions">
+        <a class="btn primary" href="/">Home</a>
+        <a class="btn ghost" href="javascript:history.back()">Go back</a>
+      </div>
+    </section>
 
-    <div class="controls">
-        WASD to Move | SPACE to Dash/Attack | 404 Tigers are coming...
-    </div>
+    <aside class="scene" aria-hidden="false">
+      <div class="halo" aria-hidden="true"></div>
 
-    <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const scoreElement = document.getElementById('score');
+      <figure class="tiger-wrap" aria-hidden="false">
+        <div class="tiger-hud" id="hud" aria-hidden="true">Paused · 7 fps</div>
+        <canvas id="tigerCanvas" width="320" height="320" role="img" aria-label="Blue pixel-art tiger walking"></canvas>
+        <figcaption class="sr-only">Animated blue pixel-art tiger walking</figcaption>
+      </figure>
 
-        canvas.width = 800;
-        canvas.height = 500;
+      <div class="ground-wrap" aria-hidden="true">
+        <div class="ground-layer" aria-hidden="true">
+          <div class="ground-back"></div>
+          <div class="ground-mid"></div>
+          <div class="ground-front"></div>
+        </div>
+      </div>
+    </aside>
+  </main>
 
-        let score = 0;
-        let gameActive = true;
+  <script>
+  (() => {
+    // ---- CONFIG ----
+    const frameCount = 7;
+    const basePath = 'media/bluetiger/frames/';
+    const prefix = 'bt';
+    const ext = '.png';
+    let fps = Number.parseInt(getComputedStyle(document.documentElement).getPropertyValue('--fps-default')) || 7;
 
-        const player = {
-            x: canvas.width / 2,
-            y: canvas.height / 2,
-            size: 30,
-            speed: 4,
-            color: '#0077ff',
-            isDashing: false,
-            dashTimer: 0
-        };
+    // ---- ELEMENTS ----
+    const canvas = document.getElementById('tigerCanvas');
+    const hud = document.getElementById('hud');
+    const ctx = canvas.getContext('2d');
+    const tigerWrap = document.querySelector('.tiger-wrap');
 
-        const keys = {};
-        const enemies = [];
+    // ground elements for speed sync
+    const gBack = document.querySelector('.ground-back');
+    const gMid = document.querySelector('.ground-mid');
+    const gFront = document.querySelector('.ground-front');
 
-        // Input handling
-        window.addEventListener('keydown', e => keys[e.code] = true);
-        window.addEventListener('keyup', e => keys[e.code] = false);
+    // state
+    let frames = [];
+    let frameW = 0, frameH = 0;
+    let playing = true;
+    let lastTime = 0;
+    let frameIndex = 0;
+    let hudTimer = null;
 
-        function spawnEnemy() {
-            if (!gameActive) return;
-            const side = Math.floor(Math.random() * 4);
-            let x, y;
-            if (side === 0) { x = -30; y = Math.random() * canvas.height; }
-            else if (side === 1) { x = canvas.width + 30; y = Math.random() * canvas.height; }
-            else if (side === 2) { x = Math.random() * canvas.width; y = -30; }
-            else { x = Math.random() * canvas.width; y = canvas.height + 30; }
+    // Load frames (resolve even if some fail)
+    const loadFrame = i => new Promise(resolve => {
+      const img = new Image();
+      img.onload = () => resolve({ok: true, img});
+      img.onerror = () => resolve({ok: false, img: null});
+      img.src = `${basePath}${prefix}${i}${ext}`;
+    });
 
-            enemies.push({ x, y, size: 25, speed: 1.5 + (score * 0.1), color: '#111', stroke: '#ff4444' });
-            setTimeout(spawnEnemy, Math.max(500, 2000 - (score * 50)));
-        }
+    Promise.all(Array.from({length: frameCount}, (_, i) => loadFrame(i+1)))
+      .then(results => {
+        frames = results.filter(r => r.ok).map(r => r.img);
+        if (!frames.length) { drawFallback(); return; }
+        frameW = frames[0].naturalWidth;
+        frameH = frames[0].naturalHeight;
+        setupCanvasAndPlay();
+      });
 
-        function update() {
-            if (!gameActive) return;
+    function setupCanvasAndPlay() {
+      // Kept the larger tiger size logic
+      const maxDisplayW = Math.min(560, tigerWrap.clientWidth * 0.95);
+      let intScale = Math.max(1, Math.floor(maxDisplayW / frameW));
+      if (intScale === 1 && frameW <= 48) intScale = 2;
 
-            // Movement
-            if (keys['KeyW'] && player.y > 0) player.y -= player.speed;
-            if (keys['KeyS'] && player.y < canvas.height - player.size) player.y += player.speed;
-            if (keys['KeyA'] && player.x > 0) player.x -= player.speed;
-            if (keys['KeyD'] && player.x < canvas.width - player.size) player.x += player.speed;
+      const DPR = window.devicePixelRatio || 1;
+      const cssW = frameW * intScale;
+      const cssH = frameH * intScale;
+      canvas.style.width = cssW + 'px';
+      canvas.style.height = cssH + 'px';
+      canvas.width = Math.round(cssW * DPR);
+      canvas.height = Math.round(cssH * DPR);
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      ctx.imageSmoothingEnabled = false; ctx.webkitImageSmoothingEnabled = false; ctx.mozImageSmoothingEnabled = false; ctx.msImageSmoothingEnabled = false;
 
-            // Dash Attack
-            if (keys['Space'] && !player.isDashing) {
-                player.isDashing = true;
-                player.dashTimer = 10;
-                player.speed = 12;
-            }
+      lastTime = performance.now();
+      requestAnimationFrame(loop);
+    }
 
-            if (player.isDashing) {
-                player.dashTimer--;
-                if (player.dashTimer <= 0) {
-                    player.isDashing = false;
-                    player.speed = 4;
-                }
-            }
+    function loop(now) {
+      if (!playing) { lastTime = now; requestAnimationFrame(loop); return; }
+      const frameDuration = 1000 / fps;
+      const elapsed = now - lastTime;
+      if (elapsed >= frameDuration) {
+        const steps = Math.floor(elapsed / frameDuration);
+        frameIndex = (frameIndex + steps) % frames.length;
+        lastTime = now - (elapsed % frameDuration);
+        drawFrame(frameIndex);
+      }
+      requestAnimationFrame(loop);
+    }
 
-            // Update Enemies
-            enemies.forEach((enemy, index) => {
-                const dx = (player.x + player.size/2) - (enemy.x + enemy.size/2);
-                const dy = (player.y + player.size/2) - (enemy.y + enemy.size/2);
-                const dist = Math.sqrt(dx*dx + dy*dy);
+    function drawFrame(i) {
+      const f = frames[i % frames.length];
+      if (!f) return;
+      const cssW = parseFloat(canvas.style.width);
+      const cssH = parseFloat(canvas.style.height);
+      ctx.clearRect(0, 0, cssW, cssH);
+      ctx.drawImage(f, 0, 0, frameW, frameH, 0, 0, cssW, cssH);
 
-                enemy.x += (dx / dist) * enemy.speed;
-                enemy.y += (dy / dist) * enemy.speed;
+      canvas.style.transform = '';
 
-                // Collision Detection
-                if (dist < (player.size/2 + enemy.size/2)) {
-                    if (player.isDashing) {
-                        enemies.splice(index, 1);
-                        score++;
-                        scoreElement.innerText = `Score: ${score}`;
-                    } else {
-                        gameActive = false;
-                        alert(`Gamer Over! The Black Tigers caught you. Score: ${score}`);
-                        location.reload();
-                    }
-                }
-            });
-        }
+      const scaleS = 0.92 + 0.08 * Math.abs(Math.sin((frameIndex / frames.length) * Math.PI * 2));
+      canvas.style.filter = `drop-shadow(0 ${14 + (1-scaleS)*8}px ${28 + (1-scaleS)*12}px rgba(2,6,23,0.7)) saturate(1.05) contrast(1.02)`;
+    }
 
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+    canvas.addEventListener('click', () => {
+      playing = !playing;
+      revealHudTemporarily();
+      updateHudText();
+    });
 
-            // Draw Player (Blue Tiger)
-            ctx.fillStyle = player.color;
-            ctx.shadowBlur = player.isDashing ? 20 : 5;
-            ctx.shadowColor = player.color;
-            ctx.fillRect(player.x, player.y, player.size, player.size);
+    function updateHudText(){ hud.textContent = `${playing ? 'Running' : 'Paused'} · ${fps} fps`; }
 
-            // Draw Stripes for "Tiger" look
-            ctx.fillStyle = '#000';
-            ctx.fillRect(player.x + 5, player.y + 5, 20, 3);
-            ctx.fillRect(player.x + 5, player.y + 15, 20, 3);
+    // Unified helper to change speed and sync ground
+    function setFps(val) {
+      fps = Math.max(1, Math.min(60, val));
 
-            // Draw Enemies (Black Tigers)
-            ctx.shadowBlur = 5;
-            enemies.forEach(enemy => {
-                ctx.fillStyle = enemy.color;
-                ctx.strokeStyle = enemy.stroke;
-                ctx.lineWidth = 2;
-                ctx.strokeRect(enemy.x, enemy.y, enemy.size, enemy.size);
-                ctx.fillRect(enemy.x, enemy.y, enemy.size, enemy.size);
-            });
+      // Ground sync logic:
+      // Base speed is 7fps. If fps doubles (14), duration should be half.
+      // Front: 10s base | Mid: 20s base | Back: 40s base
+      const ratio = 7 / fps;
+      if (gFront) gFront.style.animationDuration = (10 * ratio) + 's';
+      if (gMid)   gMid.style.animationDuration   = (20 * ratio) + 's';
+      if (gBack)  gBack.style.animationDuration  = (40 * ratio) + 's';
 
-            requestAnimationFrame(() => {
-                update();
-                draw();
-            });
-        }
+      revealHudTemporarily();
+      updateHudText();
+    }
 
-        spawnEnemy();
-        draw();
-    </script>
+    window.addEventListener('keydown', (e) => {
+      if (e.key === '+' || e.key === '=') { setFps(fps + 1); }
+      else if (e.key === '-') { setFps(fps - 1); }
+      else if (e.key === ' ') { e.preventDefault(); playing = !playing; revealHudTemporarily(); updateHudText(); }
+    });
+
+    // NEW: Scroll wheel listener
+    window.addEventListener('wheel', (e) => {
+      // DeltaY < 0 means scrolling up (speed up)
+      // DeltaY > 0 means scrolling down (slow down)
+      const delta = Math.sign(e.deltaY) * -1;
+      if (delta !== 0) {
+        setFps(fps + delta);
+      }
+    }, {passive: true});
+
+    function revealHudTemporarily(){
+      if (hudTimer) clearTimeout(hudTimer);
+      hud.classList.add('visible');
+      hud.setAttribute('aria-hidden','false');
+      hudTimer = setTimeout(()=>{ hud.classList.remove('visible'); hud.setAttribute('aria-hidden','true'); hudTimer = null; }, 2500);
+    }
+
+    document.addEventListener('visibilitychange', () => { if (document.hidden) { lastTime = performance.now(); } else { lastTime = performance.now(); } });
+
+    function drawFallback(){
+      const cssW = 360, cssH = 200; canvas.style.width = cssW + 'px'; canvas.style.height = cssH + 'px'; const DPR = window.devicePixelRatio || 1; canvas.width = cssW * DPR; canvas.height = cssH * DPR; ctx.setTransform(DPR,0,0,DPR,0,0); ctx.imageSmoothingEnabled = false; let s=0; setInterval(()=>{ ctx.clearRect(0,0,cssW,cssH); ctx.save(); ctx.translate(60,120); ctx.scale(1.2,1.2); ctx.beginPath(); ctx.moveTo(0,0); ctx.quadraticCurveTo(120,-40,240,0); ctx.quadraticCurveTo(280,30,200,60); ctx.quadraticCurveTo(70,90,0,30); ctx.fillStyle='#2aa6d9'; ctx.fill(); ctx.fillStyle='#0f4260'; for(let i=0;i<5;i++){ ctx.beginPath(); ctx.ellipse(50+i*18,18+i*4,30,10,-0.6+i*0.06,0,Math.PI*2); ctx.fill(); } ctx.restore(); s++; if(s>1000) s=0; }, 1000/(fps||7)); }
+
+  })();
+  </script>
 </body>
 </html>

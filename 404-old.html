@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Lost in the Jungle</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #1a1a1a;
+            color: #4da6ff;
+            font-family: 'Courier New', Courier, monospace;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        #ui {
+            position: absolute;
+            top: 20px;
+            text-align: center;
+            pointer-events: none;
+        }
+        canvas {
+            border: 2px solid #4da6ff;
+            background: #000;
+            box-shadow: 0 0 20px rgba(77, 166, 255, 0.2);
+            cursor: crosshair;
+        }
+        .controls {
+            margin-top: 10px;
+            color: #888;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="ui">
+        <h1>404 - PAGE NOT FOUND</h1>
+        <p>You wandered too far. Defend your territory.</p>
+        <h2 id="score">Score: 0</h2>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <div class="controls">
+        WASD to Move | SPACE to Dash/Attack | 404 Tigers are coming...
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+
+        canvas.width = 800;
+        canvas.height = 500;
+
+        let score = 0;
+        let gameActive = true;
+
+        const player = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            size: 30,
+            speed: 4,
+            color: '#0077ff',
+            isDashing: false,
+            dashTimer: 0
+        };
+
+        const keys = {};
+        const enemies = [];
+
+        // Input handling
+        window.addEventListener('keydown', e => keys[e.code] = true);
+        window.addEventListener('keyup', e => keys[e.code] = false);
+
+        function spawnEnemy() {
+            if (!gameActive) return;
+            const side = Math.floor(Math.random() * 4);
+            let x, y;
+            if (side === 0) { x = -30; y = Math.random() * canvas.height; }
+            else if (side === 1) { x = canvas.width + 30; y = Math.random() * canvas.height; }
+            else if (side === 2) { x = Math.random() * canvas.width; y = -30; }
+            else { x = Math.random() * canvas.width; y = canvas.height + 30; }
+
+            enemies.push({ x, y, size: 25, speed: 1.5 + (score * 0.1), color: '#111', stroke: '#ff4444' });
+            setTimeout(spawnEnemy, Math.max(500, 2000 - (score * 50)));
+        }
+
+        function update() {
+            if (!gameActive) return;
+
+            // Movement
+            if (keys['KeyW'] && player.y > 0) player.y -= player.speed;
+            if (keys['KeyS'] && player.y < canvas.height - player.size) player.y += player.speed;
+            if (keys['KeyA'] && player.x > 0) player.x -= player.speed;
+            if (keys['KeyD'] && player.x < canvas.width - player.size) player.x += player.speed;
+
+            // Dash Attack
+            if (keys['Space'] && !player.isDashing) {
+                player.isDashing = true;
+                player.dashTimer = 10;
+                player.speed = 12;
+            }
+
+            if (player.isDashing) {
+                player.dashTimer--;
+                if (player.dashTimer <= 0) {
+                    player.isDashing = false;
+                    player.speed = 4;
+                }
+            }
+
+            // Update Enemies
+            enemies.forEach((enemy, index) => {
+                const dx = (player.x + player.size/2) - (enemy.x + enemy.size/2);
+                const dy = (player.y + player.size/2) - (enemy.y + enemy.size/2);
+                const dist = Math.sqrt(dx*dx + dy*dy);
+
+                enemy.x += (dx / dist) * enemy.speed;
+                enemy.y += (dy / dist) * enemy.speed;
+
+                // Collision Detection
+                if (dist < (player.size/2 + enemy.size/2)) {
+                    if (player.isDashing) {
+                        enemies.splice(index, 1);
+                        score++;
+                        scoreElement.innerText = `Score: ${score}`;
+                    } else {
+                        gameActive = false;
+                        alert(`Gamer Over! The Black Tigers caught you. Score: ${score}`);
+                        location.reload();
+                    }
+                }
+            });
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Player (Blue Tiger)
+            ctx.fillStyle = player.color;
+            ctx.shadowBlur = player.isDashing ? 20 : 5;
+            ctx.shadowColor = player.color;
+            ctx.fillRect(player.x, player.y, player.size, player.size);
+
+            // Draw Stripes for "Tiger" look
+            ctx.fillStyle = '#000';
+            ctx.fillRect(player.x + 5, player.y + 5, 20, 3);
+            ctx.fillRect(player.x + 5, player.y + 15, 20, 3);
+
+            // Draw Enemies (Black Tigers)
+            ctx.shadowBlur = 5;
+            enemies.forEach(enemy => {
+                ctx.fillStyle = enemy.color;
+                ctx.strokeStyle = enemy.stroke;
+                ctx.lineWidth = 2;
+                ctx.strokeRect(enemy.x, enemy.y, enemy.size, enemy.size);
+                ctx.fillRect(enemy.x, enemy.y, enemy.size, enemy.size);
+            });
+
+            requestAnimationFrame(() => {
+                update();
+                draw();
+            });
+        }
+
+        spawnEnemy();
+        draw();
+    </script>
+</body>
+</html>
