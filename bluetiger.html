@@ -1,10 +1,731 @@
- <!DOCTYPE html>
-<html>
-<title>Blue Tiger</title>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blue Tiger</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: radial-gradient(circle at 30% 40%, #1d4b3a, #0a281c);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 16px;
+        }
+
+        .game-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            width: 100%;
+            padding: 0 8px;
+            color: #7ec8e0;
+            text-shadow: 0 0 10px #1e90ff;
+            font-weight: bold;
+            font-size: 1.6rem;
+            letter-spacing: 2px;
+        }
+
+        .score-panel {
+            display: flex;
+            gap: 32px;
+        }
+
+        #score, #highScore {
+            background: #0d3b3b;
+            padding: 6px 20px;
+            border-radius: 40px;
+            border: 2px solid #3fa0c0;
+            box-shadow: inset 0 0 6px #2c6b8f, 0 0 16px #2c8fb0;
+            color: #d4f4ff;
+            font-size: 1.6rem;
+            font-weight: bold;
+        }
+
+        canvas {
+            display: block;
+            width: 960px;
+            height: 600px;
+            border-radius: 32px;
+            border: 4px solid #2f8f9f;
+            box-shadow: 0 20px 30px rgba(0,0,0,0.7), 0 0 0 2px #6fcbdc inset, 0 0 30px #1f9fbf;
+            background: #1a3a2a;
+            cursor: crosshair;
+        }
+
+        .status-bar {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            background: #1f4d4d;
+            padding: 12px 24px;
+            border-radius: 60px;
+            border: 2px solid #50b0c0;
+            color: #d0f0ff;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .dash-meter {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .dash-bar-bg {
+            width: 200px;
+            height: 18px;
+            background: #1d5555;
+            border-radius: 30px;
+            border: 2px solid #409090;
+            overflow: hidden;
+        }
+
+        #dashFill {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #6bd4ff, #b0f0ff);
+            box-shadow: 0 0 12px #00c8ff;
+            transition: width 0.1s;
+        }
+
+        .fire-cooldown {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .fire-dot {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #00ccff;
+            box-shadow: 0 0 15px cyan;
+            transition: 0.1s;
+        }
+        .fire-dot.ready {
+            background: #7ff0ff;
+            box-shadow: 0 0 25px #4ef0ff;
+        }
+        .fire-dot.cool {
+            background: #526f7a;
+            box-shadow: none;
+        }
+
+        .controls {
+            display: flex;
+            gap: 30px;
+            color: #b0e5f0;
+            font-size: 1rem;
+            background: #1d5550;
+            padding: 8px 32px;
+            border-radius: 40px;
+            border: 2px solid #50b0c0;
+        }
+
+        .controls span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .game-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 30, 20, 0.7);
+            backdrop-filter: blur(4px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .gameover-card {
+            background: #153e3e;
+            border: 4px solid #4fc0d0;
+            border-radius: 48px;
+            padding: 40px 60px;
+            text-align: center;
+            box-shadow: 0 0 60px #2f9faf;
+            color: #dcf8ff;
+        }
+
+        .gameover-card h2 {
+            font-size: 4rem;
+            margin: 0 0 10px;
+            text-shadow: 0 0 20px #3fd0ff;
+            letter-spacing: 6px;
+        }
+
+        .gameover-card p {
+            font-size: 2rem;
+            margin: 20px;
+        }
+
+        #restartBtn {
+            background: #2fa0b0;
+            border: none;
+            font-family: inherit;
+            font-size: 2rem;
+            font-weight: bold;
+            padding: 18px 48px;
+            border-radius: 60px;
+            color: #052a2a;
+            box-shadow: 0 8px 0 #166d7a, 0 12px 25px black;
+            cursor: pointer;
+            transition: 0.08s linear;
+            border: 2px solid #a0ecff;
+        }
+
+        #restartBtn:active {
+            transform: translateY(8px);
+            box-shadow: 0 2px 0 #166d7a, 0 6px 20px black;
+        }
+
+        footer {
+            color: #60b0b0;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
 <body>
+    <div class="game-wrapper">
+        <div class="header">
+            <span>BLUE TIGER</span>
+            <div class="score-panel">
+                <div id="score">0</div>
+                <div id="highScore">0</div>
+            </div>
+        </div>
 
-<h1>The blue tiger doesnt concern himself with website design</h1>
-<p>stragi is gay</p>
+        <canvas id="gameCanvas" width="960" height="600"></canvas>
 
+        <div class="status-bar">
+            <div class="dash-meter">
+                <span>💨 DASH</span>
+                <div class="dash-bar-bg"><div id="dashFill" style="width:100%"></div></div>
+            </div>
+            <div class="fire-cooldown">
+                <span>🔫 FIRE</span>
+                <div id="fireDot" class="fire-dot ready"></div>
+            </div>
+            <div class="controls">
+                <span>🡑🡐 🡓 🡒  WASD</span>
+                <span>💨 SPACE (dash)</span>
+                <span>🖱️ LEFT CLICK (shoot)</span>
+            </div>
+        </div>
+        <footer>❖ shoot black tigers · survive · dash only for speed ❖</footer>
+    </div>
+
+    <div class="game-overlay" id="gameOverlay">
+        <div class="gameover-card">
+            <h2>GAME OVER</h2>
+            <p>🐾 final score <span id="finalScore">0</span></p>
+            <button id="restartBtn">RESTART</button>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+            const scoreSpan = document.getElementById('score');
+            const highScoreSpan = document.getElementById('highScore');
+            const dashFill = document.getElementById('dashFill');
+            const fireDot = document.getElementById('fireDot');
+            const overlay = document.getElementById('gameOverlay');
+            const finalScoreSpan = document.getElementById('finalScore');
+            const restartBtn = document.getElementById('restartBtn');
+
+            const W = canvas.width;
+            const H = canvas.height;
+
+            // ---------- game state ----------
+            let gameActive = true;
+            let score = 0;
+            let highScore = localStorage.getItem('blueTigerHigh') ? parseInt(localStorage.getItem('blueTigerHigh')) : 0;
+            highScoreSpan.innerText = highScore;
+
+            // ---------- player (BLUE TIGER) ----------
+            const player = {
+                x: W/2 - 15,
+                y: H/2 - 15,
+                size: 30,
+                baseSpeed: 3.8,
+                dashSpeed: 11.5,
+                speed: 3.8,
+                color: '#3a86ff',          // brilliant blue
+                stripeColor: '#001f66',      // dark navy stripes
+                isDashing: false,
+                dashTimer: 0,
+                dashCooldown: 0
+            };
+
+            // ---------- enemies (black tigers) ----------
+            let enemies = [];
+
+            // ---------- projectiles (blue tiger shots) ----------
+            let projectiles = [];
+            const PROJECTILE_SPEED = 8;
+            const PROJECTILE_SIZE = 8;
+            const SHOT_COOLDOWN_FRAMES = 12;   // ~200ms at 60fps
+            let shotCooldown = 0;
+
+            // ---------- input ----------
+            const keys = {};
+
+            // ---------- dash settings ----------
+            const DASH_DURATION = 12;       // frames
+            const DASH_COOLDOWN = 30;        // frames after dash
+
+            // ---------- spawn control ----------
+            let spawnTimeout = null;
+
+            // ---------- helper: high score ----------
+            function updateHighScore() {
+                if (score > highScore) {
+                    highScore = score;
+                    localStorage.setItem('blueTigerHigh', highScore);
+                }
+                highScoreSpan.innerText = highScore;
+            }
+
+            // ---------- restart ----------
+            function restartGame() {
+                if (spawnTimeout) {
+                    clearTimeout(spawnTimeout);
+                    spawnTimeout = null;
+                }
+
+                gameActive = true;
+                score = 0;
+                enemies = [];
+                projectiles = [];
+                player.x = W/2 - 15;
+                player.y = H/2 - 15;
+                player.isDashing = false;
+                player.dashTimer = 0;
+                player.dashCooldown = 0;
+                player.speed = player.baseSpeed;
+                shotCooldown = 0;
+
+                scoreSpan.innerText = '0';
+                dashFill.style.width = '100%';
+                fireDot.className = 'fire-dot ready';
+                overlay.style.display = 'none';
+
+                spawnEnemy();
+            }
+
+            // ---------- game over ----------
+            function gameOver() {
+                if (!gameActive) return;
+                gameActive = false;
+                finalScoreSpan.innerText = score;
+                overlay.style.display = 'flex';
+            }
+
+            // ---------- spawn enemies (black tigers) ----------
+            function spawnEnemy() {
+                if (!gameActive) return;
+
+                const side = Math.floor(Math.random() * 4);
+                let x, y;
+                const padding = 45;
+                if (side === 0) { // left
+                    x = -padding;
+                    y = Math.random() * H;
+                } else if (side === 1) { // right
+                    x = W + padding;
+                    y = Math.random() * H;
+                } else if (side === 2) { // top
+                    x = Math.random() * W;
+                    y = -padding;
+                } else { // bottom
+                    x = Math.random() * W;
+                    y = H + padding;
+                }
+
+                let baseSpeed = 1.3 + (score * 0.05);
+                if (baseSpeed > 4.0) baseSpeed = 4.0;
+
+                enemies.push({
+                    x, y,
+                    size: 26,
+                    speed: baseSpeed,
+                    color: '#111111',
+                    stroke: '#aa2222',
+                    eyeColor: '#ff4f4f'
+                });
+
+                let nextSpawn = Math.max(400, 2000 - (score * 40));
+                if (nextSpawn < 260) nextSpawn = 260;
+
+                spawnTimeout = setTimeout(spawnEnemy, nextSpawn);
+            }
+
+            // ---------- shooting with mouse ----------
+            function handleMouseDown(e) {
+                if (!gameActive) return;
+                if (e.button !== 0) return; // left click only
+                e.preventDefault();
+
+                if (shotCooldown > 0) return; // not ready
+
+                // get mouse coordinates relative to canvas
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+
+                let mouseX = (e.clientX - rect.left) * scaleX;
+                let mouseY = (e.clientY - rect.top) * scaleY;
+
+                // clamp to canvas (just in case)
+                mouseX = Math.min(W, Math.max(0, mouseX));
+                mouseY = Math.min(H, Math.max(0, mouseY));
+
+                // direction from player center to mouse
+                const fromX = player.x + player.size/2;
+                const fromY = player.y + player.size/2;
+                let dx = mouseX - fromX;
+                let dy = mouseY - fromY;
+
+                const len = Math.hypot(dx, dy);
+                if (len < 0.001) return; // exactly on player
+
+                const normDx = dx / len;
+                const normDy = dy / len;
+
+                projectiles.push({
+                    x: fromX,
+                    y: fromY,
+                    vx: normDx * PROJECTILE_SPEED,
+                    vy: normDy * PROJECTILE_SPEED,
+                    size: PROJECTILE_SIZE,
+                    active: true
+                });
+
+                shotCooldown = SHOT_COOLDOWN_FRAMES;
+                fireDot.className = 'fire-dot cool';
+            }
+
+            // ---------- update logic ----------
+            function update() {
+                if (!gameActive) return;
+
+                // --- player movement ---
+                if (keys['KeyW'] && player.y > 0) player.y -= player.speed;
+                if (keys['KeyS'] && player.y < H - player.size) player.y += player.speed;
+                if (keys['KeyA'] && player.x > 0) player.x -= player.speed;
+                if (keys['KeyD'] && player.x < W - player.size) player.x += player.speed;
+
+                // --- dash (space) ---
+                if (keys['Space'] && !player.isDashing && player.dashCooldown <= 0) {
+                    player.isDashing = true;
+                    player.dashTimer = DASH_DURATION;
+                    player.speed = player.dashSpeed;
+                }
+
+                if (player.isDashing) {
+                    player.dashTimer--;
+                    if (player.dashTimer <= 0) {
+                        player.isDashing = false;
+                        player.speed = player.baseSpeed;
+                        player.dashCooldown = DASH_COOLDOWN;
+                    }
+                }
+
+                if (player.dashCooldown > 0) {
+                    player.dashCooldown--;
+                }
+
+                // --- dash UI ---
+                if (player.isDashing) {
+                    dashFill.style.width = '100%';
+                } else if (player.dashCooldown > 0) {
+                    let percent = ((DASH_COOLDOWN - player.dashCooldown) / DASH_COOLDOWN) * 100;
+                    dashFill.style.width = Math.max(0, percent) + '%';
+                } else {
+                    dashFill.style.width = '100%';
+                }
+
+                // --- shot cooldown ---
+                if (shotCooldown > 0) {
+                    shotCooldown--;
+                    if (shotCooldown === 0) {
+                        fireDot.className = 'fire-dot ready';
+                    }
+                }
+
+                // --- move projectiles & check enemy hits ---
+                for (let i = projectiles.length - 1; i >= 0; i--) {
+                    const p = projectiles[i];
+                    p.x += p.vx;
+                    p.y += p.vy;
+
+                    // remove off-screen
+                    if (p.x < -30 || p.x > W + 30 || p.y < -30 || p.y > H + 30) {
+                        projectiles.splice(i, 1);
+                        continue;
+                    }
+
+                    // check collision with enemies
+                    let hit = false;
+                    for (let j = enemies.length - 1; j >= 0; j--) {
+                        const enemy = enemies[j];
+                        const dx = p.x - (enemy.x + enemy.size/2);
+                        const dy = p.y - (enemy.y + enemy.size/2);
+                        const dist = Math.hypot(dx, dy);
+                        if (dist < (p.size/2 + enemy.size/2)) {
+                            // enemy destroyed
+                            enemies.splice(j, 1);
+                            hit = true;
+                            score++;
+                            scoreSpan.innerText = score;
+                            updateHighScore();
+                            break; // projectile disappears after one kill
+                        }
+                    }
+                    if (hit) {
+                        projectiles.splice(i, 1);
+                    }
+                }
+
+                // --- move enemies & collision with player (GAME OVER if any touch) ---
+                const playerCenterX = player.x + player.size/2;
+                const playerCenterY = player.y + player.size/2;
+
+                for (let i = enemies.length - 1; i >= 0; i--) {
+                    const enemy = enemies[i];
+                    const enemyCenterX = enemy.x + enemy.size/2;
+                    const enemyCenterY = enemy.y + enemy.size/2;
+
+                    const dx = playerCenterX - enemyCenterX;
+                    const dy = playerCenterY - enemyCenterY;
+                    const dist = Math.hypot(dx, dy);
+
+                    if (dist > 0.01) {
+                        enemy.x += (dx / dist) * enemy.speed;
+                        enemy.y += (dy / dist) * enemy.speed;
+                    }
+
+                    // collision detection (enemy vs player)
+                    if (dist < (player.size/2 + enemy.size/2)) {
+                        // regardless of dashing, it's game over (dash does NOT kill)
+                        gameOver();
+                        break;
+                    }
+                }
+            }
+
+            // ---------- drawing ----------
+            function drawBackground() {
+                const grad = ctx.createLinearGradient(0, 0, W*0.6, H);
+                grad.addColorStop(0, '#194d3a');
+                grad.addColorStop(0.7, '#26664d');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, W, H);
+
+                // dark foliage
+                ctx.fillStyle = '#143d2d';
+                for (let i=0; i<12; i++) {
+                    ctx.beginPath();
+                    ctx.moveTo(i*85, H-70);
+                    ctx.lineTo(i*85+45, H-160);
+                    ctx.lineTo(i*85+90, H-70);
+                    ctx.fillStyle = '#103d30';
+                    ctx.fill();
+                }
+
+                ctx.strokeStyle = '#267a5e';
+                ctx.lineWidth = 0.6;
+                ctx.globalAlpha = 0.15;
+                for (let i=0; i<W; i+=70) {
+                    ctx.beginPath();
+                    ctx.moveTo(i, 0);
+                    ctx.lineTo(i, H);
+                    ctx.stroke();
+                }
+                for (let i=0; i<H; i+=70) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, i);
+                    ctx.lineTo(W, i);
+                    ctx.stroke();
+                }
+                ctx.globalAlpha = 1.0;
+            }
+
+            function drawPlayer() {
+                ctx.shadowColor = player.isDashing ? '#8ec8ff' : '#3a86ff';
+                ctx.shadowBlur = player.isDashing ? 30 : 18;
+
+                // blue body (rounded)
+                ctx.fillStyle = player.color;
+                ctx.beginPath();
+                ctx.roundRect(player.x, player.y, player.size, player.size, 8);
+                ctx.fill();
+
+                // darker stripes
+                ctx.fillStyle = player.stripeColor;
+                ctx.shadowBlur = 5;
+                ctx.fillRect(player.x+4, player.y+6, 22, 4);
+                ctx.fillRect(player.x+6, player.y+16, 18, 4);
+                ctx.fillRect(player.x+4, player.y+22, 22, 4);
+
+                // eyes
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(player.x+9, player.y+8, 4, 0, 2*Math.PI);
+                ctx.arc(player.x+21, player.y+8, 4, 0, 2*Math.PI);
+                ctx.fill();
+                ctx.fillStyle = '#17202a';
+                ctx.beginPath();
+                ctx.arc(player.x+10, player.y+8, 2, 0, 2*Math.PI);
+                ctx.arc(player.x+22, player.y+8, 2, 0, 2*Math.PI);
+                ctx.fill();
+            }
+
+            function drawEnemies() {
+                ctx.shadowColor = '#ff3f3f';
+                ctx.shadowBlur = 16;
+                enemies.forEach(enemy => {
+                    ctx.fillStyle = enemy.color;
+                    ctx.strokeStyle = enemy.stroke;
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.roundRect(enemy.x, enemy.y, enemy.size, enemy.size, 6);
+                    ctx.fill();
+                    ctx.stroke();
+
+                    // red eyes
+                    ctx.fillStyle = enemy.eyeColor;
+                    ctx.shadowBlur = 18;
+                    ctx.beginPath();
+                    ctx.arc(enemy.x+7, enemy.y+8, 4, 0, 2*Math.PI);
+                    ctx.arc(enemy.x+19, enemy.y+8, 4, 0, 2*Math.PI);
+                    ctx.fill();
+                    ctx.fillStyle = '#5f0000';
+                    ctx.beginPath();
+                    ctx.arc(enemy.x+7, enemy.y+8, 2, 0, 2*Math.PI);
+                    ctx.arc(enemy.x+19, enemy.y+8, 2, 0, 2*Math.PI);
+                    ctx.fill();
+
+                    // teeth
+                    ctx.strokeStyle = '#eeeeee';
+                    ctx.lineWidth = 1.5;
+                    for (let t=0; t<3; t++) {
+                        ctx.beginPath();
+                        ctx.moveTo(enemy.x+8 + t*5, enemy.y+18);
+                        ctx.lineTo(enemy.x+5 + t*5, enemy.y+24);
+                        ctx.stroke();
+                    }
+                });
+            }
+
+            function drawProjectiles() {
+                ctx.shadowColor = '#3ad9ff';
+                ctx.shadowBlur = 14;
+                projectiles.forEach(p => {
+                    ctx.fillStyle = '#7fd4ff';
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size/2, 0, 2*Math.PI);
+                    ctx.fill();
+                    // inner glow
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.arc(p.x-1, p.y-1, p.size/4, 0, 2*Math.PI);
+                    ctx.fill();
+                });
+            }
+
+            // roundRect helper
+            CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+                if (w < 2 * r) r = w / 2;
+                if (h < 2 * r) r = h / 2;
+                this.moveTo(x + r, y);
+                this.lineTo(x + w - r, y);
+                this.quadraticCurveTo(x + w, y, x + w, y + r);
+                this.lineTo(x + w, y + h - r);
+                this.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+                this.lineTo(x + r, y + h);
+                this.quadraticCurveTo(x, y + h, x, y + h - r);
+                this.lineTo(x, y + r);
+                this.quadraticCurveTo(x, y, x + r, y);
+                return this;
+            };
+
+            function draw() {
+                if (!gameActive) {
+                    drawBackground();
+                    drawPlayer();
+                    drawEnemies();
+                    drawProjectiles();
+                    requestAnimationFrame(draw);
+                    return;
+                }
+
+                drawBackground();
+                drawPlayer();
+                drawEnemies();
+                drawProjectiles();
+
+                ctx.shadowBlur = 0;
+                ctx.shadowColor = 'transparent';
+
+                requestAnimationFrame(() => {
+                    update();
+                    draw();
+                });
+            }
+
+            // ---------- event listeners ----------
+            window.addEventListener('keydown', (e) => {
+                const code = e.code;
+                if (code === 'Space' || code.startsWith('Key')) {
+                    e.preventDefault();
+                }
+                keys[code] = true;
+            });
+
+            window.addEventListener('keyup', (e) => {
+                const code = e.code;
+                if (code === 'Space' || code.startsWith('Key')) {
+                    e.preventDefault();
+                }
+                keys[code] = false;
+            });
+
+            // mouse shooting
+            canvas.addEventListener('mousedown', handleMouseDown);
+            canvas.addEventListener('contextmenu', (e) => e.preventDefault()); // disable right-click menu
+
+            // restart button
+            restartBtn.addEventListener('click', () => {
+                restartGame();
+            });
+
+            // start game
+            spawnEnemy();
+            draw();
+            updateHighScore();
+        })();
+    </script>
 </body>
-</html> 
+</html>
