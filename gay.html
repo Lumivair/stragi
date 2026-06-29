@@ -14,7 +14,7 @@
 
 body{
     background:#0d1117;
-    color:white;
+    color:#fff;
     font-family:Arial,Helvetica,sans-serif;
     display:flex;
     justify-content:center;
@@ -27,7 +27,7 @@ body{
     padding:50px;
     border-radius:20px;
     text-align:center;
-    box-shadow:0 0 30px rgba(0,0,0,.5);
+    box-shadow:0 0 30px rgba(0,0,0,.6);
 }
 
 h1{
@@ -37,8 +37,9 @@ h1{
 
 #countdown{
     font-family:Consolas,monospace;
-    font-size:5rem;
+    font-size:4.7rem;
     font-weight:bold;
+    user-select:none;
 }
 
 #info{
@@ -47,17 +48,18 @@ h1{
     font-size:1.3rem;
 }
 </style>
-
 </head>
+
 <body>
 
 <div class="container">
     <h1>Lesson Ends In</h1>
-    <div id="countdown">00:00:00.000000000</div>
+    <div id="countdown">00:00:00.000.000000.000000.000000.000000</div>
     <div id="info"></div>
 </div>
 
 <script>
+
 const lessonEnds = [
     "08:30",
     "09:25",
@@ -72,31 +74,39 @@ const lessonEnds = [
     "17:50"
 ];
 
+// High precision base clock
 const epochStart = Date.now();
 const perfStart = performance.now();
 
-function nowMs(){
+function preciseNow(){
     return epochStart + (performance.now() - perfStart);
 }
 
-function pad(n,l){
-    return Math.floor(n).toString().padStart(l,"0");
+function pad(num,len){
+    return Math.floor(num).toString().padStart(len,"0");
 }
 
-function nextLessonEnd(){
+function randomDigits(length){
+    let out = "";
+    for(let i=0;i<length;i++){
+        out += Math.floor(Math.random()*10);
+    }
+    return out;
+}
 
-    const now = new Date(nowMs());
+function getTarget(){
 
-    for(const time of lessonEnds){
+    const now = new Date(preciseNow());
 
-        const [h,m] = time.split(":").map(Number);
+    for(const t of lessonEnds){
+
+        const [h,m] = t.split(":").map(Number);
 
         const end = new Date(now);
         end.setHours(h,m,0,0);
 
-        if(now < end){
+        if(now < end)
             return end;
-        }
     }
 
     return null;
@@ -104,16 +114,16 @@ function nextLessonEnd(){
 
 function update(){
 
-    const target = nextLessonEnd();
+    const target = getTarget();
 
     if(!target){
-        document.getElementById("countdown").textContent = "School Finished!";
-        document.getElementById("info").textContent = "";
+        countdown.textContent = "School Finished!";
+        info.textContent = "";
         requestAnimationFrame(update);
         return;
     }
 
-    let diff = target.getTime() - nowMs();
+    let diff = target.getTime() - preciseNow();
 
     if(diff < 0) diff = 0;
 
@@ -126,22 +136,27 @@ function update(){
     const seconds = Math.floor(diff / 1000);
     diff %= 1000;
 
-    // First 6 digits are based on the fractional milliseconds
-    const micros = Math.floor(diff * 1000);
+    // Only these are real
+    const milliseconds = Math.floor(diff);
 
-    // Last 3 digits are completely random
-    const fake = Math.floor(Math.random() * 1000);
+    // Everything after this is fake and random
+    const fake1 = randomDigits(6);
+    const fake2 = randomDigits(6);
+    const fake3 = randomDigits(6);
+    const fake4 = randomDigits(6);
 
-    const nanos = micros * 1000 + fake;
-
-    document.getElementById("countdown").textContent =
+    countdown.textContent =
         `${pad(hours,2)}:` +
         `${pad(minutes,2)}:` +
         `${pad(seconds,2)}.` +
-        `${pad(nanos,9)}`;
+        `${pad(milliseconds,3)}.` +
+        `${fake1}.` +
+        `${fake2}.` +
+        `${fake3}.` +
+        `${fake4}`;
 
-    document.getElementById("info").textContent =
-        "Lesson ends at " +
+    info.textContent =
+        "Current lesson ends at " +
         target.toLocaleTimeString([],{
             hour:"2-digit",
             minute:"2-digit",
@@ -152,6 +167,7 @@ function update(){
 }
 
 update();
+
 </script>
 
 </body>
