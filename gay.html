@@ -14,7 +14,7 @@
 
 body{
     background:#0d1117;
-    color:#fff;
+    color:white;
     font-family:Arial,Helvetica,sans-serif;
     display:flex;
     justify-content:center;
@@ -23,28 +23,28 @@ body{
 }
 
 .container{
-    text-align:center;
     background:#161b22;
     padding:50px;
     border-radius:20px;
-    box-shadow:0 0 40px rgba(0,0,0,.5);
+    text-align:center;
+    box-shadow:0 0 30px rgba(0,0,0,.5);
 }
 
 h1{
-    font-size:2.2rem;
-    margin-bottom:25px;
+    font-size:2.5rem;
+    margin-bottom:20px;
 }
 
-#time{
+#countdown{
     font-family:Consolas,monospace;
     font-size:5rem;
     font-weight:bold;
 }
 
-#end{
+#info{
     margin-top:20px;
-    font-size:1.4rem;
-    color:#9ca3af;
+    color:#aaa;
+    font-size:1.3rem;
 }
 </style>
 
@@ -52,9 +52,9 @@ h1{
 <body>
 
 <div class="container">
-    <h1>Lesson ends in</h1>
-    <div id="time">00:00:00.000000000</div>
-    <div id="end"></div>
+    <h1>Lesson Ends In</h1>
+    <div id="countdown">00:00:00.000000000</div>
+    <div id="info"></div>
 </div>
 
 <script>
@@ -72,46 +72,48 @@ const lessonEnds = [
     "17:50"
 ];
 
-// High-resolution timing
 const epochStart = Date.now();
 const perfStart = performance.now();
 
-function getPreciseNow() {
+function nowMs(){
     return epochStart + (performance.now() - perfStart);
 }
 
-function getNextLessonEnd() {
-    const now = new Date(getPreciseNow());
+function pad(n,l){
+    return Math.floor(n).toString().padStart(l,"0");
+}
 
-    for (const t of lessonEnds) {
-        const [h, m] = t.split(":").map(Number);
+function nextLessonEnd(){
+
+    const now = new Date(nowMs());
+
+    for(const time of lessonEnds){
+
+        const [h,m] = time.split(":").map(Number);
 
         const end = new Date(now);
-        end.setHours(h, m, 0, 0);
+        end.setHours(h,m,0,0);
 
-        if (now < end)
+        if(now < end){
             return end;
+        }
     }
 
     return null;
 }
 
-function pad(num, len) {
-    return Math.floor(num).toString().padStart(len, "0");
-}
+function update(){
 
-function update() {
+    const target = nextLessonEnd();
 
-    const target = getNextLessonEnd();
-
-    if (!target) {
-        document.getElementById("time").textContent = "School Finished!";
-        document.getElementById("end").textContent = "";
+    if(!target){
+        document.getElementById("countdown").textContent = "School Finished!";
+        document.getElementById("info").textContent = "";
         requestAnimationFrame(update);
         return;
     }
 
-    let diff = target.getTime() - getPreciseNow();
+    let diff = target.getTime() - nowMs();
 
     if(diff < 0) diff = 0;
 
@@ -124,21 +126,27 @@ function update() {
     const seconds = Math.floor(diff / 1000);
     diff %= 1000;
 
-    // Fractional milliseconds
-    const nanos = Math.floor(diff * 1000000); // displayed as 9 digits (not true nanoseconds)
+    // First 6 digits are based on the fractional milliseconds
+    const micros = Math.floor(diff * 1000);
 
-    document.getElementById("time").textContent =
+    // Last 3 digits are completely random
+    const fake = Math.floor(Math.random() * 1000);
+
+    const nanos = micros * 1000 + fake;
+
+    document.getElementById("countdown").textContent =
         `${pad(hours,2)}:` +
         `${pad(minutes,2)}:` +
         `${pad(seconds,2)}.` +
         `${pad(nanos,9)}`;
 
-    document.getElementById("end").textContent =
-        `Ends at ${target.toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: false
-        })}`;
+    document.getElementById("info").textContent =
+        "Lesson ends at " +
+        target.toLocaleTimeString([],{
+            hour:"2-digit",
+            minute:"2-digit",
+            hour12:false
+        });
 
     requestAnimationFrame(update);
 }
