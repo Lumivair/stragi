@@ -6,10 +6,15 @@
 <title>Lesson Countdown</title>
 
 <style>
-body{
+*{
     margin:0;
-    background:#111;
-    color:white;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    background:#0d1117;
+    color:#fff;
     font-family:Arial,Helvetica,sans-serif;
     display:flex;
     justify-content:center;
@@ -19,128 +24,121 @@ body{
 
 .container{
     text-align:center;
-    background:#1b1b1b;
-    padding:40px;
-    border-radius:15px;
-    box-shadow:0 0 20px rgba(0,0,0,.4);
+    background:#161b22;
+    padding:50px;
+    border-radius:20px;
+    box-shadow:0 0 40px rgba(0,0,0,.5);
 }
 
-#lesson{
-    font-size:2rem;
-    margin-bottom:15px;
+h1{
+    font-size:2.2rem;
+    margin-bottom:25px;
 }
 
-#countdown{
-    font-size:4rem;
-    font-family:monospace;
+#time{
+    font-family:Consolas,monospace;
+    font-size:5rem;
+    font-weight:bold;
 }
 
-#status{
+#end{
     margin-top:20px;
-    color:#aaa;
-    font-size:1.2rem;
+    font-size:1.4rem;
+    color:#9ca3af;
 }
 </style>
+
 </head>
 <body>
 
 <div class="container">
-    <div id="lesson"></div>
-    <div id="countdown">00:00:00.000</div>
-    <div id="status"></div>
+    <h1>Lesson ends in</h1>
+    <div id="time">00:00:00.000000000</div>
+    <div id="end"></div>
 </div>
 
 <script>
-const lessons = [
-    {name:"Math",      start:"07:45", end:"08:30"},
-    {name:"French",    start:"08:40", end:"09:25"},
-    {name:"French",    start:"09:35", end:"10:20"},
-    {name:"Chemistry", start:"10:40", end:"11:25"},
-    {name:"Chemistry", start:"11:35", end:"12:20"},
-    {name:"SH",        start:"12:30", end:"13:15"},
-    {name:"Free",      start:"14:20", end:"15:05"},
-    {name:"German",    start:"15:15", end:"16:00"}
+const lessonEnds = [
+    "08:30",
+    "09:25",
+    "10:20",
+    "11:25",
+    "12:20",
+    "13:15",
+    "14:10",
+    "15:05",
+    "16:00",
+    "16:55",
+    "17:50"
 ];
 
-function todayTime(str){
-    const [h,m]=str.split(":").map(Number);
-    const d=new Date();
-    d.setHours(h,m,0,0);
-    return d;
+// High-resolution timing
+const epochStart = Date.now();
+const perfStart = performance.now();
+
+function getPreciseNow() {
+    return epochStart + (performance.now() - perfStart);
 }
 
-function format(ms){
-    if(ms<0) ms=0;
+function getNextLessonEnd() {
+    const now = new Date(getPreciseNow());
 
-    const hours=Math.floor(ms/3600000);
-    ms%=3600000;
+    for (const t of lessonEnds) {
+        const [h, m] = t.split(":").map(Number);
 
-    const minutes=Math.floor(ms/60000);
-    ms%=60000;
+        const end = new Date(now);
+        end.setHours(h, m, 0, 0);
 
-    const seconds=Math.floor(ms/1000);
-    const millis=ms%1000;
+        if (now < end)
+            return end;
+    }
 
-    return `${String(hours).padStart(2,"0")}:`+
-           `${String(minutes).padStart(2,"0")}:`+
-           `${String(seconds).padStart(2,"0")}.`+
-           `${String(millis).padStart(3,"0")}`;
+    return null;
 }
 
-function update(){
+function pad(num, len) {
+    return Math.floor(num).toString().padStart(len, "0");
+}
 
-    const now=new Date();
+function update() {
 
-    let current=null;
+    const target = getNextLessonEnd();
 
-    for(const lesson of lessons){
-
-        const start=todayTime(lesson.start);
-        const end=todayTime(lesson.end);
-
-        if(now>=start && now<end){
-            current={lesson,start,end};
-            break;
-        }
+    if (!target) {
+        document.getElementById("time").textContent = "School Finished!";
+        document.getElementById("end").textContent = "";
+        requestAnimationFrame(update);
+        return;
     }
 
-    if(current){
+    let diff = target.getTime() - getPreciseNow();
 
-        document.getElementById("lesson").textContent=
-            current.lesson.name+" ends in";
+    if(diff < 0) diff = 0;
 
-        document.getElementById("countdown").textContent=
-            format(current.end-now);
+    const hours = Math.floor(diff / 3600000);
+    diff %= 3600000;
 
-        document.getElementById("status").textContent=
-            `${current.lesson.start} - ${current.lesson.end}`;
+    const minutes = Math.floor(diff / 60000);
+    diff %= 60000;
 
-    }else{
+    const seconds = Math.floor(diff / 1000);
+    diff %= 1000;
 
-        const next=lessons.find(l=>now<todayTime(l.start));
+    // Fractional milliseconds
+    const nanos = Math.floor(diff * 1000000); // displayed as 9 digits (not true nanoseconds)
 
-        if(next){
+    document.getElementById("time").textContent =
+        `${pad(hours,2)}:` +
+        `${pad(minutes,2)}:` +
+        `${pad(seconds,2)}.` +
+        `${pad(nanos,9)}`;
 
-            document.getElementById("lesson").textContent=
-                "Next lesson: "+next.name;
-
-            document.getElementById("countdown").textContent=
-                format(todayTime(next.start)-now);
-
-            document.getElementById("status").textContent=
-                `Starts at ${next.start}`;
-
-        }else{
-
-            document.getElementById("lesson").textContent=
-                "School finished for today!";
-
-            document.getElementById("countdown").textContent=
-                "00:00:00.000";
-
-            document.getElementById("status").textContent="";
-        }
-    }
+    document.getElementById("end").textContent =
+        `Ends at ${target.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false
+        })}`;
 
     requestAnimationFrame(update);
 }
