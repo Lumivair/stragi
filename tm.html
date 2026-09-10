@@ -6,13 +6,11 @@
     <title>School Timetable</title>
     <style>
         :root {
-            /* Light Theme */
             --bg-color: #f8fafc;
             --surface-color: #ffffff;
             --text-main: #0f172a;
             --text-muted: #64748b;
             --border-color: #e2e8f0;
-            --accent-color: #3b82f6;
             --grid-line: #f1f5f9;
             --canceled-bg: #e2e8f0;
             --canceled-text: #94a3b8;
@@ -20,37 +18,22 @@
 
         @media (prefers-color-scheme: dark) {
             :root {
-                /* Dark Theme */
                 --bg-color: #0f172a;
                 --surface-color: #1e293b;
                 --text-main: #f8fafc;
                 --text-muted: #94a3b8;
                 --border-color: #334155;
-                --accent-color: #60a5fa;
                 --grid-line: #1e293b;
                 --canceled-bg: #334155;
                 --canceled-text: #64748b;
             }
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
         header {
-            padding: 1rem 2rem;
+            padding: 1rem 1.5rem;
             background-color: var(--surface-color);
             border-bottom: 1px solid var(--border-color);
             display: flex;
@@ -59,227 +42,101 @@
             flex-shrink: 0;
         }
 
-        .header-title h1 {
-            font-size: 1.25rem;
-            font-weight: 600;
-        }
+        .header-title h1 { font-size: 1.2rem; font-weight: 600; }
+        .header-title p { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem; }
 
-        .header-title p {
-            font-size: 0.875rem;
-            color: var(--text-muted);
-            margin-top: 0.25rem;
-        }
-
-        .controls {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
+        .controls { display: flex; align-items: center; gap: 0.75rem; }
         button {
             background-color: var(--surface-color);
             border: 1px solid var(--border-color);
             color: var(--text-main);
-            padding: 0.5rem 1rem;
+            padding: 0.4rem 0.8rem;
             border-radius: 6px;
             cursor: pointer;
             font-weight: 500;
             transition: all 0.2s;
         }
+        button:hover { background-color: var(--border-color); }
 
-        button:hover {
-            background-color: var(--border-color);
-        }
+        #current-week-label { font-weight: 600; min-width: 140px; text-align: center; font-size: 0.9rem; }
 
-        #current-week-label {
-            font-weight: 600;
-            min-width: 150px;
-            text-align: center;
-        }
-
-        .main-container {
-            flex: 1;
-            display: flex;
-            overflow-y: auto;
-            padding: 1.5rem;
-            gap: 1rem;
-        }
-
+        .main-container { flex: 1; display: flex; overflow-y: auto; padding: 1rem; gap: 1rem; }
         .timetable-wrapper {
             background-color: var(--surface-color);
             border: 1px solid var(--border-color);
-            border-radius: 12px;
+            border-radius: 8px;
             display: flex;
             flex: 1;
             position: relative;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             overflow: hidden;
         }
 
-        .time-column {
-            width: 60px;
-            border-right: 1px solid var(--border-color);
-            position: relative;
-            flex-shrink: 0;
-        }
+        .time-column { width: 55px; border-right: 1px solid var(--border-color); position: relative; flex-shrink: 0; }
+        .time-label { position: absolute; right: 8px; transform: translateY(-50%); font-size: 0.7rem; color: var(--text-muted); }
 
-        .time-label {
-            position: absolute;
-            right: 10px;
-            transform: translateY(-50%);
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            font-weight: 500;
-        }
+        .days-container { display: flex; flex: 1; position: relative; }
+        .grid-lines { position: absolute; inset: 0; pointer-events: none; }
+        .grid-line { position: absolute; left: 0; right: 0; border-top: 1px solid var(--grid-line); }
 
-        .days-container {
-            display: flex;
-            flex: 1;
-            position: relative;
-        }
-
-        .grid-lines {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            pointer-events: none;
-        }
-
-        .grid-line {
-            position: absolute;
-            left: 0;
-            right: 0;
-            border-top: 1px solid var(--grid-line);
-        }
-
-        .day-column {
-            flex: 1;
-            border-right: 1px solid var(--border-color);
-            position: relative;
-        }
-
-        .day-column:last-child {
-            border-right: none;
-        }
+        .day-column { flex: 1; border-right: 1px solid var(--border-color); position: relative; }
+        .day-column:last-child { border-right: none; }
 
         .day-header {
             text-align: center;
-            padding: 1rem 0;
+            padding: 0.75rem 0;
             border-bottom: 1px solid var(--border-color);
             font-weight: 600;
+            font-size: 0.9rem;
             background-color: var(--surface-color);
             position: sticky;
             top: 0;
             z-index: 10;
         }
+        .day-header span { display: block; font-size: 0.75rem; color: var(--text-muted); font-weight: 400; margin-top: 0.2rem; }
 
-        .day-header span {
-            display: block;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            font-weight: 400;
-            margin-top: 0.25rem;
-        }
-
-        .events-container {
-            position: relative;
-            height: 800px; /* Maps to our day timeline */
-        }
+        .events-container { position: relative; height: 800px; }
 
         .event {
             position: absolute;
-            left: 4px;
-            right: 4px;
-            border-radius: 6px;
-            padding: 0.5rem;
-            font-size: 0.8rem;
+            left: 4px; right: 4px;
+            border-radius: 5px;
+            padding: 0.4rem;
+            font-size: 0.75rem;
             overflow: hidden;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-left: 3px solid;
             transition: transform 0.1s;
-            cursor: pointer;
-            border-left: 4px solid rgba(0,0,0,0.2);
         }
-
-        .event:hover {
-            transform: scale(1.02);
-            z-index: 5 !important;
-        }
-
-        .event-title {
-            font-weight: 700;
-            margin-bottom: 0.25rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .event-details {
-            font-size: 0.7rem;
-            opacity: 0.9;
-        }
+        .event:hover { transform: scale(1.02); z-index: 5; }
+        .event-title { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .event-details { font-size: 0.68rem; opacity: 0.85; margin-top: 0.1rem; }
 
         .event.canceled {
             background-color: var(--canceled-bg) !important;
             color: var(--canceled-text) !important;
-            border-left-color: var(--canceled-text);
-            box-shadow: none;
+            border-left-color: var(--canceled-text) !important;
         }
-        
-        .event.canceled .event-title {
-            text-decoration: line-through;
-        }
+        .event.canceled .event-title { text-decoration: line-through; }
 
         .current-time-line {
-            position: absolute;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background-color: #ef4444;
-            z-index: 20;
-            pointer-events: none;
-            display: none;
+            position: absolute; left: 0; right: 0; height: 2px;
+            background-color: #ef4444; z-index: 20; pointer-events: none;
         }
-
         .current-time-line::before {
-            content: '';
-            position: absolute;
-            left: -4px;
-            top: -4px;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background-color: #ef4444;
-        }
-
-        #status-banner {
-            background-color: #fbbf24;
-            color: #b45309;
-            text-align: center;
-            padding: 0.5rem;
-            font-size: 0.875rem;
-            display: none;
-            font-weight: 500;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .day-header { font-size: 0.8rem; }
-            .event-details { display: none; }
-            .controls button { padding: 0.5rem; }
+            content: ''; position: absolute; left: -4px; top: -4px;
+            width: 10px; height: 10px; border-radius: 50%; background-color: #ef4444;
         }
     </style>
 </head>
 <body>
 
-    <div id="status-banner"></div>
-
     <header>
         <div class="header-title">
-            <h1>Intranet Timetable</h1>
-            <p id="sub-header">Loading schedule...</p>
+            <h1>Timetable</h1>
+            <p id="sub-header">Updating schedule...</p>
         </div>
         <div class="controls">
             <button id="btn-prev">← Prev</button>
-            <span id="current-week-label">Week ...</span>
+            <span id="current-week-label">Loading...</span>
             <button id="btn-next">Next →</button>
             <button id="btn-today">Today</button>
         </div>
@@ -290,326 +147,194 @@
             <div class="time-column" id="time-column"></div>
             <div class="days-container" id="days-container">
                 <div class="grid-lines" id="grid-lines"></div>
-                <!-- Days will be injected here via JS -->
             </div>
         </div>
     </div>
 
-    <!-- Fallback Data Block -->
-    <script type="text/calendar" id="fallback-ics">
-BEGIN:VCALENDAR
-VERSION:2.0
-METHOD:PUBLISH
-BEGIN:VEVENT
-UID:50f82bc043dbc72cfed761bb6b5ff70b-gyselroth@felix.aikman
-DTSTART;VALUE=DATE:20260713
-DTEND;VALUE=DATE:20260815
-DTSTAMP:20260910T160848
-SUMMARY:Sommerferien
-LOCATION:
-DESCRIPTION:
-END:VEVENT
-BEGIN:VEVENT
-UID:5074ac1980888a6445e6892ec7b17b9e-gyselroth@felix.aikman
-DTSTART:20260817T054500Z
-DTEND:20260817T063000Z
-DTSTAMP:20260910T160848
-SUMMARY:BG#, Sü, 414
-LOCATION:414
-DESCRIPTION:Franziska Schürmann
-END:VEVENT
-BEGIN:VEVENT
-UID:2cdfacccec4715e6eb927ce6cf5735fc-gyselroth@felix.aikman
-DTSTART:20260817T064000Z
-DTEND:20260817T072500Z
-DTSTAMP:20260910T160848
-SUMMARY:BG#, Sü, 414
-LOCATION:414
-DESCRIPTION:Franziska Schürmann
-END:VEVENT
-BEGIN:VEVENT
-UID:ec43dfea351b4ed1d5ffef5eb5d787c8-gyselroth@felix.aikman
-DTSTART:20260817T073500Z
-DTEND:20260817T082000Z
-DTSTAMP:20260910T160848
-SUMMARY:F, Sl, 506
-LOCATION:506
-DESCRIPTION:Christina Stahl
-END:VEVENT
-BEGIN:VEVENT
-UID:29cc5321eeebf1ed929adbc2da623f1b-gyselroth@felix.aikman
-DTSTART:20260817T131500Z
-DTEND:20260817T140000Z
-DTSTAMP:20260910T160848
-SUMMARY:(Raumwechsel) D, Sp, 505
-LOCATION:505
-DESCRIPTION:Zoe Sabina Späti
-END:VEVENT
-BEGIN:VEVENT
-UID:a0ab29a7208e234bc1c13e577eaad028-gyselroth@felix.aikman
-DTSTART:20260908T122000Z
-DTEND:20260908T130500Z
-DTSTAMP:20260910T160848
-SUMMARY:(gestrichen) Gg, Bn,Zb, 404
-LOCATION:404
-DESCRIPTION:Giulia Zambelli,Simone Berner
-END:VEVENT
-BEGIN:VEVENT
-UID:53304e8524edae4fa1c23114dacf0c83-gyselroth@felix.aikman
-DTSTART:20260916T093500Z
-DTEND:20260916T111500Z
-DTSTAMP:20260910T160848
-SUMMARY:Rangverkündigung Sporttag und Showblock
-LOCATION:
-DESCRIPTION:
-END:VEVENT
-END:VCALENDAR
-    </script>
-
     <script>
-        // Configuration
-        const ICS_URL = "https://intranet.tam.ch/klw/rest/ics/type/timetable/date/1719488700/auth/gr001@ZmVsaXguYWlrbWFu:MzY3MjBlMTIwYmE3NDYxMjU0ZmQ2YjRkNTExYmRkZjNhYjhkYTYzMQ==/calendar.ics";
-        const START_HOUR = 7;  // 07:00
-        const END_HOUR = 17;   // 17:00 (Total 10 hours)
-        const TOTAL_MINUTES = (END_HOUR - START_HOUR) * 60;
+        const TARGET_URL = "https://intranet.tam.ch/klw/rest/ics/type/timetable/date/1719488700/auth/gr001@ZmVsaXguYWlrbWFu:MzY3MjBlMTIwYmE3NDYxMjU0ZmQ2YjRkNTExYmRkZjNhYjhkYTYzMQ==/calendar.ics";
         
-        // Subject Colors Palette
-        const colors = [
-            '#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', 
-            '#06b6d4', '#0ea5e9', '#3b82f6', '#6366f1', '#8b5cf6', '#d946ef'
+        // Proxy list to ensure high availability
+        const PROXIES = [
+            url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+            url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`
         ];
 
+        const START_HOUR = 7;
+        const END_HOUR = 17;
+        const TOTAL_MINUTES = (END_HOUR - START_HOUR) * 60;
+        
+        const COLORS = ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', '#06b6d4', '#0ea5e9', '#3b82f6', '#6366f1', '#8b5cf6'];
+
         let eventsData = [];
-        let currentViewDate = new Date(); // Sept 10, 2026 based on context
+        let currentViewDate = new Date();
 
-        // Initialize App
-        async function init() {
-            setupGrid();
-            bindControls();
-            
-            try {
-                // Try to fetch live data first
-                const response = await fetch(ICS_URL);
-                if (!response.ok) throw new Error("CORS or Network error");
-                const text = await response.text();
-                eventsData = parseICS(text);
-                document.getElementById('sub-header').innerText = "Live Schedule loaded";
-            } catch (err) {
-                // Fallback to embedded backup
-                showBanner("Displaying fallback data. Live fetching blocked by browser security (CORS).");
-                const fallbackText = document.getElementById('fallback-ics').innerText;
-                eventsData = parseICS(fallbackText);
-                document.getElementById('sub-header').innerText = "Offline Schedule loaded";
+        async function fetchICS() {
+            for (const proxy of PROXIES) {
+                try {
+                    const res = await fetch(proxy(TARGET_URL) + `&_t=${Date.now()}`);
+                    if (!res.ok) continue;
+                    const text = await res.text();
+                    if (text.includes("BEGIN:VCALENDAR")) return text;
+                } catch (e) {
+                    continue;
+                }
             }
-
-            // Default to start of the week of September 10, 2026 for demonstration
-            currentViewDate = new Date(2026, 8, 10); 
-            renderWeek();
+            throw new Error("Unable to fetch schedule through proxies.");
         }
 
-        function showBanner(msg) {
-            const banner = document.getElementById('status-banner');
-            banner.innerText = msg;
-            banner.style.display = 'block';
+        async function loadData() {
+            try {
+                const icsText = await fetchICS();
+                eventsData = parseICS(icsText);
+                document.getElementById('sub-header').innerText = `Auto-updated: ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+                renderWeek();
+            } catch (err) {
+                document.getElementById('sub-header').innerText = "Failed to load schedule";
+            }
         }
 
-        // ICS Parser
-        function parseICS(icsString) {
-            // Unfold lines that are wrapped with spaces
-            icsString = icsString.replace(/\r?\n /g, "");
-            const lines = icsString.split(/\r?\n/);
+        function parseICS(ics) {
+            ics = ics.replace(/\r?\n /g, "");
+            const lines = ics.split(/\r?\n/);
             const events = [];
-            let currentEvent = null;
+            let curr = null;
 
             lines.forEach(line => {
-                if (line.startsWith('BEGIN:VEVENT')) {
-                    currentEvent = { isAllDay: false, canceled: false };
-                } else if (line.startsWith('END:VEVENT')) {
-                    if (currentEvent.start && currentEvent.end) events.push(currentEvent);
-                    currentEvent = null;
-                } else if (currentEvent) {
-                    if (line.startsWith('DTSTART')) {
-                        currentEvent.start = parseDateString(line);
-                        if(line.includes('VALUE=DATE')) currentEvent.isAllDay = true;
-                    } else if (line.startsWith('DTEND')) {
-                        currentEvent.end = parseDateString(line);
-                    } else if (line.startsWith('SUMMARY:')) {
-                        currentEvent.summary = line.substring(8);
-                        if (currentEvent.summary.toLowerCase().includes('(gestrichen)')) {
-                            currentEvent.canceled = true;
-                        }
-                    } else if (line.startsWith('LOCATION:')) {
-                        currentEvent.location = line.substring(9);
-                    } else if (line.startsWith('DESCRIPTION:')) {
-                        currentEvent.description = line.substring(12);
-                    }
+                if (line.startsWith('BEGIN:VEVENT')) curr = { canceled: false };
+                else if (line.startsWith('END:VEVENT')) {
+                    if (curr?.start && curr?.end) events.push(curr);
+                    curr = null;
+                } else if (curr) {
+                    if (line.startsWith('DTSTART')) curr.start = parseDate(line);
+                    else if (line.startsWith('DTEND')) curr.end = parseDate(line);
+                    else if (line.startsWith('SUMMARY:')) {
+                        curr.summary = line.substring(8);
+                        if (curr.summary.toLowerCase().includes('(gestrichen)')) curr.canceled = true;
+                    } 
+                    else if (line.startsWith('LOCATION:')) curr.location = line.substring(9);
                 }
             });
             return events;
         }
 
-        function parseDateString(line) {
-            const parts = line.split(':');
-            const dateStr = parts[1];
-            const y = parseInt(dateStr.substr(0, 4));
-            const m = parseInt(dateStr.substr(4, 2)) - 1;
-            const d = parseInt(dateStr.substr(6, 2));
-
+        function parseDate(line) {
+            const dateStr = line.split(':')[1];
+            const y = parseInt(dateStr.substr(0, 4)), m = parseInt(dateStr.substr(4, 2)) - 1, d = parseInt(dateStr.substr(6, 2));
             if (dateStr.includes('T')) {
-                const h = parseInt(dateStr.substr(9, 2));
-                const min = parseInt(dateStr.substr(11, 2));
-                const s = parseInt(dateStr.substr(13, 2));
-                // Handle UTC 'Z' indicator
-                if (dateStr.endsWith('Z')) {
-                    return new Date(Date.UTC(y, m, d, h, min, s));
-                }
-                return new Date(y, m, d, h, min, s);
+                const h = parseInt(dateStr.substr(9, 2)), min = parseInt(dateStr.substr(11, 2)), s = parseInt(dateStr.substr(13, 2));
+                return dateStr.endsWith('Z') ? new Date(Date.UTC(y, m, d, h, min, s)) : new Date(y, m, d, h, min, s);
             }
             return new Date(y, m, d);
         }
 
-        // Generate consistent colors for subjects
-        function getColorForSubject(summary) {
-            // Extract core subject (e.g., "M" from "M, Fo, 308")
-            const subject = summary.split(',')[0].replace(/[\(\)gestrichenRaumwechsel]/gi, '').trim();
+        function getColor(str) {
             let hash = 0;
-            for (let i = 0; i < subject.length; i++) {
-                hash = subject.charCodeAt(i) + ((hash << 5) - hash);
-            }
-            return colors[Math.abs(hash) % colors.length];
+            const sub = str.split(',')[0].replace(/[\(\)gestrichenRaumwechsel]/gi, '').trim();
+            for (let i = 0; i < sub.length; i++) hash = sub.charCodeAt(i) + ((hash << 5) - hash);
+            return COLORS[Math.abs(hash) % COLORS.length];
         }
 
-        // UI Building
         function setupGrid() {
             const timeCol = document.getElementById('time-column');
             const gridLines = document.getElementById('grid-lines');
-            
             for (let h = START_HOUR; h <= END_HOUR; h++) {
-                const percentage = ((h - START_HOUR) * 60) / TOTAL_MINUTES * 100;
+                const pct = ((h - START_HOUR) * 60) / TOTAL_MINUTES * 100;
                 
-                // Labels
                 const label = document.createElement('div');
                 label.className = 'time-label';
-                label.style.top = `${percentage}%`;
+                label.style.top = `${pct}%`;
                 label.innerText = `${h}:00`;
                 timeCol.appendChild(label);
 
-                // Grid lines
                 const line = document.createElement('div');
                 line.className = 'grid-line';
-                line.style.top = `${percentage}%`;
+                line.style.top = `${pct}%`;
                 gridLines.appendChild(line);
             }
-        }
-
-        function bindControls() {
-            document.getElementById('btn-prev').onclick = () => {
-                currentViewDate.setDate(currentViewDate.getDate() - 7);
-                renderWeek();
-            };
-            document.getElementById('btn-next').onclick = () => {
-                currentViewDate.setDate(currentViewDate.getDate() + 7);
-                renderWeek();
-            };
-            document.getElementById('btn-today').onclick = () => {
-                currentViewDate = new Date();
-                renderWeek();
-            };
         }
 
         function getMonday(d) {
             d = new Date(d);
             const day = d.getDay();
-            const diff = d.getDate() - day + (day == 0 ? -6 : 1); 
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1);
             return new Date(d.setDate(diff));
         }
 
         function renderWeek() {
-            const container = document.getElementById('days-container');
-            // Remove existing day columns
             document.querySelectorAll('.day-column').forEach(e => e.remove());
-
+            const container = document.getElementById('days-container');
             const monday = getMonday(currentViewDate);
-            const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-            
-            document.getElementById('current-week-label').innerText = 
-                `${monday.getDate()} ${monday.toLocaleString('default', { month: 'short' })} - ` +
-                `${new Date(monday.getTime() + 4 * 86400000).getDate()} ${new Date(monday.getTime() + 4 * 86400000).toLocaleString('default', { month: 'short' })}`;
+            const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
 
-            days.forEach((dayName, index) => {
-                const currentDate = new Date(monday.getTime() + (index * 86400000));
-                
-                const dayCol = document.createElement('div');
-                dayCol.className = 'day-column';
-                
-                const header = document.createElement('div');
-                header.className = 'day-header';
-                header.innerHTML = `${dayName} <span>${currentDate.getDate()}.${currentDate.getMonth()+1}.</span>`;
-                dayCol.appendChild(header);
+            document.getElementById('current-week-label').innerText = 
+                `${monday.getDate()} ${monday.toLocaleString('default', {month:'short'})} - ${new Date(monday.getTime() + 4 * 86400000).getDate()} ${new Date(monday.getTime() + 4 * 86400000).toLocaleString('default', {month:'short'})}`;
+
+            days.forEach((dayName, idx) => {
+                const date = new Date(monday.getTime() + (idx * 86400000));
+                const col = document.createElement('div');
+                col.className = 'day-column';
+
+                col.innerHTML = `<div class="day-header">${dayName}<span>${date.getDate()}.${date.getMonth()+1}.</span></div>`;
 
                 const eventsWrap = document.createElement('div');
                 eventsWrap.className = 'events-container';
-                
-                // Filter events for this specific day
+
                 const dayEvents = eventsData.filter(e => 
-                    !e.isAllDay &&
-                    e.start.getFullYear() === currentDate.getFullYear() &&
-                    e.start.getMonth() === currentDate.getMonth() &&
-                    e.start.getDate() === currentDate.getDate()
+                    e.start.getFullYear() === date.getFullYear() &&
+                    e.start.getMonth() === date.getMonth() &&
+                    e.start.getDate() === date.getDate()
                 );
 
                 dayEvents.forEach(evt => {
                     const startMins = (evt.start.getHours() - START_HOUR) * 60 + evt.start.getMinutes();
                     const durationMins = (evt.end.getTime() - evt.start.getTime()) / 60000;
-                    
-                    if(startMins < 0 || startMins > TOTAL_MINUTES) return; // Outside view
-
-                    const top = (startMins / TOTAL_MINUTES) * 100;
-                    const height = (durationMins / TOTAL_MINUTES) * 100;
+                    if (startMins < 0 || startMins > TOTAL_MINUTES) return;
 
                     const el = document.createElement('div');
                     el.className = `event ${evt.canceled ? 'canceled' : ''}`;
-                    el.style.top = `${top}%`;
-                    el.style.height = `${height}%`;
-                    
+                    el.style.top = `${(startMins / TOTAL_MINUTES) * 100}%`;
+                    el.style.height = `${(durationMins / TOTAL_MINUTES) * 100}%`;
+
                     if (!evt.canceled) {
-                        const baseColor = getColorForSubject(evt.summary);
-                        el.style.backgroundColor = `${baseColor}20`; // 20% opacity background
-                        el.style.borderColor = baseColor;
-                        el.style.color = baseColor;
+                        const c = getColor(evt.summary);
+                        el.style.backgroundColor = `${c}22`;
+                        el.style.borderColor = c;
+                        el.style.color = c;
                     }
 
                     el.innerHTML = `
                         <div class="event-title">${evt.summary}</div>
-                        <div class="event-details">
-                            ${evt.start.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - ${evt.end.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                            <br>${evt.location ? `Room: ${evt.location}` : ''}
-                        </div>
+                        <div class="event-details">${evt.start.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}${evt.location ? ` | ${evt.location}` : ''}</div>
                     `;
-                    el.title = `${evt.summary}\n${evt.description || ''}`;
                     eventsWrap.appendChild(el);
                 });
 
-                // Add current time indicator if it's today
                 const now = new Date();
-                if (currentDate.getDate() === now.getDate() && currentDate.getMonth() === now.getMonth()) {
+                if (date.toDateString() === now.toDateString()) {
                     const nowMins = (now.getHours() - START_HOUR) * 60 + now.getMinutes();
                     if (nowMins >= 0 && nowMins <= TOTAL_MINUTES) {
-                        const timeline = document.createElement('div');
-                        timeline.className = 'current-time-line';
-                        timeline.style.top = `${(nowMins / TOTAL_MINUTES) * 100}%`;
-                        timeline.style.display = 'block';
-                        eventsWrap.appendChild(timeline);
+                        const line = document.createElement('div');
+                        line.className = 'current-time-line';
+                        line.style.top = `${(nowMins / TOTAL_MINUTES) * 100}%`;
+                        eventsWrap.appendChild(line);
                     }
                 }
 
-                dayCol.appendChild(eventsWrap);
-                container.appendChild(dayCol);
+                col.appendChild(eventsWrap);
+                container.appendChild(col);
             });
         }
 
-        // Run
-        window.onload = init;
+        document.getElementById('btn-prev').onclick = () => { currentViewDate.setDate(currentViewDate.getDate() - 7); renderWeek(); };
+        document.getElementById('btn-next').onclick = () => { currentViewDate.setDate(currentViewDate.getDate() + 7); renderWeek(); };
+        document.getElementById('btn-today').onclick = () => { currentViewDate = new Date(); renderWeek(); };
+
+        setupGrid();
+        loadData();
+        
+        // Auto refresh in background every 10 minutes
+        setInterval(loadData, 10 * 60 * 1000);
     </script>
 </body>
 </html>
