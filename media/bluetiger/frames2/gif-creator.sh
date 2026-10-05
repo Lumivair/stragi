@@ -1,6 +1,6 @@
 # tweak these:
 FR=7        # frames per second
-SCALE=10      # integer scaling factor (2, 3, 4 ...). Use 1 for no scaling.
+SCALE=1      # integer scaling factor (2, 3, 4 ...). Use 1 for no scaling.
 
 # make animated gif (two-step palette method)
 ffmpeg -y -framerate "$FR" -start_number 1 -i bt%d.png \
