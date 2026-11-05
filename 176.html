@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Type 176 as fast as you can. Your speed is measured in 176 per second.">
+<title>176/s: type 176 as fast as you can</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Unbounded:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eceff4;--fg:#0b1020;--dim:#c5ccdb;--mut:#5b6580;--line:#d3d9e6;--acc:#2a3cff;--on:#fff;--card:#f8f9fc;color-scheme:light;
+--disp:"Unbounded","Arial Black",system-ui,sans-serif;--ui:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b1230;--fg:#eef1ff;--dim:#26305e;--mut:#8c97c4;--line:#1c2750;--acc:#ffb81c;--on:#0b1230;--card:#101a3f;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0b1230;--fg:#eef1ff;--dim:#26305e;--mut:#8c97c4;--line:#1c2750;--acc:#ffb81c;--on:#0b1230;--card:#101a3f;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{height:100%}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:400 1rem/1.5 var(--ui);-webkit-tap-highlight-color:transparent}
+.app{min-height:100%;display:flex;flex-direction:column;max-width:980px;margin:0 auto;padding:0 20px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 0}
+.logo{font:800 1.35rem/1 var(--disp);letter-spacing:-.04em}
+.logo span{color:var(--acc)}
+.modes{display:flex;gap:2px;padding:3px;border:1px solid var(--line);border-radius:999px;background:var(--card)}
+button{font:inherit;color:inherit;cursor:pointer}
+.modes button{border:0;background:none;padding:7px 15px;border-radius:999px;font-weight:500;color:var(--mut);transition:background .15s,color .15s}
+.modes button[aria-pressed="true"]{background:var(--acc);color:var(--on)}
+.modes button:not([aria-pressed="true"]):hover{color:var(--fg)}
+#theme{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--card);display:grid;place-items:center;padding:0}
+button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+main{position:relative;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:8px 0 20px;cursor:text;text-align:center}
+.top{width:100%;display:flex;justify-content:space-between;color:var(--mut);font-size:.9rem}
+.clock{font-variant-numeric:tabular-nums;font-weight:600;color:var(--fg)}
+.bar{width:100%;height:4px;border-radius:4px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;width:100%;background:var(--acc);border-radius:4px}
+main.live .bar i{opacity:.25}
+.rate{display:flex;align-items:baseline;gap:10px;margin-top:10px}
+.rate b{font-weight:600;font-size:clamp(2.6rem,9vw,4.4rem);line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.02em;min-width:4.4ch;text-align:right}
+.rate span{font:700 1.15rem var(--disp);color:var(--acc);letter-spacing:-.04em}
+.word{font:800 clamp(7rem,34vw,21rem)/.95 var(--disp);letter-spacing:-.06em;display:flex;padding:.04em .08em 0 0;user-select:none}
+.d{position:relative;color:var(--dim);transition:color .06s}
+.d.ok{color:var(--acc)}
+.d.cur{color:var(--fg)}
+.d.cur::after{content:"";position:absolute;left:6%;right:14%;bottom:-.02em;height:.045em;background:var(--acc);animation:blink 1s steps(2,start) infinite}
+@keyframes blink{50%{opacity:0}}
+.word.bad{animation:shake .16s}
+.word.pop{animation:pop .14s}
+@keyframes shake{25%{transform:translateX(-.02em)}75%{transform:translateX(.02em)}}
+@keyframes pop{40%{transform:scale(1.025)}}
+canvas{width:100%;height:120px;display:block}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:100%;margin:0}
+.stats div{padding:10px 4px;border-top:1px solid var(--line)}
+.stats dt{color:var(--mut);font-size:.85rem}
+.stats dd{margin:0;font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums}
+.hint{margin:0;color:var(--mut);font-size:.95rem;min-height:1.5em}
+.res{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;z-index:2}
+.res[hidden]{display:none}
+.res p{margin:0;color:var(--mut)}
+.res .big{font:800 clamp(4rem,19vw,9rem)/1 var(--disp);letter-spacing:-.05em;color:var(--acc);font-variant-numeric:tabular-nums}
+.res .u{font:700 1.4rem var(--disp);letter-spacing:-.04em}
+.badge{background:var(--acc);color:var(--on);font-weight:600;padding:3px 12px;border-radius:999px;font-size:.9rem}
+.badge[hidden]{display:none}
+.again{margin-top:16px;border:0;background:var(--fg);color:var(--bg);font-weight:600;padding:12px 26px;border-radius:999px;font-size:1.05rem}
+#cap{position:absolute;opacity:0;width:1px;height:1px;left:50%;top:50%;border:0;padding:0;pointer-events:none}
+footer{padding:0 0 18px;color:var(--mut);font-size:.85rem;text-align:center}
+@media (max-width:560px){.stats{grid-template-columns:repeat(2,1fr)}.modes button{padding:7px 11px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div class="logo">176<span>/s</span></div>
+  <div class="modes" role="group" aria-label="Mode">
+    <button data-m="live" aria-pressed="true">Live</button>
+    <button data-m="5" aria-pressed="false">5s</button>
+    <button data-m="10" aria-pressed="false">10s</button>
+    <button data-m="15" aria-pressed="false">15s</button>
+  </div>
+  <button id="theme" aria-label="Switch light or dark theme"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 1.8a6.2 6.2 0 0 1 0 12.4z" fill="currentColor"/></svg></button>
+</header>
+
+<main id="stage" class="live">
+  <div class="top"><span id="lbl"></span><span class="clock" id="clock">0.0s</span></div>
+  <div class="bar"><i id="bar"></i></div>
+  <div class="rate"><b id="rate">0.00</b><span>176/s</span></div>
+  <div class="word" id="word" aria-label="Type 176"><span class="d">1</span><span class="d">7</span><span class="d">6</span></div>
+  <canvas id="cv" aria-hidden="true"></canvas>
+  <dl class="stats">
+    <div><dt>Completed</dt><dd id="count">0</dd></div>
+    <div><dt>Accuracy</dt><dd id="acc">–</dd></div>
+    <div><dt>Peak rate</dt><dd id="peak">0.00</dd></div>
+    <div><dt>Your best</dt><dd id="best">–</dd></div>
+  </dl>
+  <p class="hint" id="hint"></p>
+
+  <div class="res" id="res" hidden aria-live="polite">
+    <p>Time’s up</p>
+    <div class="big" id="rn">0.00</div>
+    <div class="u">176/s</div>
+    <p id="rs"></p>
+    <span class="badge" id="nb" hidden>New best</span>
+    <button class="again" id="again">Go again</button>
+  </div>
+  <input id="cap" inputmode="numeric" pattern="[0-9]*" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="Type 176 here">
+</main>
+<footer>Digits only. Esc resets. Enter or Space goes again.</footer>
+</div>
+
+<script>
+(()=>{
+const T='176',W=2500,WIN=10000;
+const $=i=>document.getElementById(i);
+const root=document.documentElement,stage=$('stage'),word=$('word'),cap=$('cap'),cv=$('cv'),cx=cv.getContext('2d'),D=[...document.querySelectorAll('.d')];
+let mode='live',st,idx,count,hits,errs,times,t0,tEnd,doneAt=0,disp,peak,S,lastS,ym=3,col={},dirty=0;
+let best={};
+try{best=JSON.parse(localStorage.getItem('b176')||'{}')||{};const t=localStorage.getItem('t176');if(t)root.dataset.theme=t}catch(e){}
+const save=()=>{try{localStorage.setItem('b176',JSON.stringify(best));dirty=0}catch(e){}};
+const dur=()=>mode==='live'?Infinity:mode*1000;
+const anim=(c)=>{word.classList.remove('bad','pop');void word.offsetWidth;word.classList.add(c)};
+
+function readCol(){const s=getComputedStyle(root);col={acc:s.getPropertyValue('--acc').trim(),bg:s.getPropertyValue('--bg').trim(),dim:s.getPropertyValue('--line').trim(),mut:s.getPropertyValue('--mut').trim()}}
+function size(){const d=devicePixelRatio||1;cv.width=cv.clientWidth*d;cv.height=cv.clientHeight*d;cx.setTransform(d,0,0,d,0,0)}
+
+function rd(){D.forEach((el,i)=>{el.className='d'+(i<idx?' ok':i===idx&&st!=='done'?' cur':'')})}
+function upd(now){
+  const e=st==='idle'?0:st==='done'?tEnd-t0:now-t0;
+  $('rate').textContent=disp.toFixed(2);
+  $('count').textContent=count;
+  $('acc').textContent=hits+errs?Math.round(hits/(hits+errs)*100)+'%':'–';
+  $('peak').textContent=peak.toFixed(2);
+  $('best').textContent=best[mode]?best[mode].toFixed(2):'–';
+  if(mode==='live')$('clock').textContent=(e/1000).toFixed(1)+'s';
+  else{$('clock').textContent=Math.max(0,(dur()-e)/1000).toFixed(1)+'s';$('bar').style.width=Math.max(0,100-e/dur()*100)+'%'}
+}
+function reset(){
+  if(dirty)save();
+  st='idle';idx=count=hits=errs=0;times=[];S=[];disp=peak=0;ym=3;lastS=0;t0=tEnd=0;
+  $('res').hidden=true;
+  stage.classList.toggle('live',mode==='live');
+  $('lbl').textContent=mode==='live'?'Live rate, averaged over the last 2.5 seconds':mode+' second sprint';
+  $('hint').textContent='Type 1, 7, 6. Your first key starts the clock.';
+  $('bar').style.width='100%';
+  rd();upd(0);
+}
+function finish(){
+  st='done';tEnd=t0+dur();doneAt=performance.now();
+  const f=count/(dur()/1000);disp=f;
+  const nb=count>0&&f>(best[mode]||0);
+  if(nb){best[mode]=f;save()}
+  $('rn').textContent=f.toFixed(2);
+  const a=hits+errs?Math.round(hits/(hits+errs)*100):100;
+  $('rs').textContent=count+' × 176 in '+mode+' seconds at '+a+'% accuracy';
+  $('nb').hidden=!nb;
+  $('hint').textContent='';
+  $('res').hidden=false;rd();upd(tEnd);
+}
+function press(ch){
+  if(st==='done')return;
+  const now=performance.now();
+  if(st==='idle'){st='running';t0=lastS=now;$('hint').textContent='Esc to reset.'}
+  if(mode!=='live'&&now-t0>=dur()){finish();return}
+  if(ch===T[idx]){
+    hits++;idx++;
+    if(idx===3){idx=0;count++;times.push(now);anim('pop')}
+  }else{errs++;anim('bad')}
+  rd();
+}
+
+function paint(now){
+  const w=cv.clientWidth,h=cv.clientHeight;
+  cx.clearRect(0,0,w,h);
+  const t1=st==='done'?tEnd:now,x=t=>(t-(t1-WIN))/WIN*w;
+  const vis=S.filter(s=>s.t>t1-WIN-300);
+  let m=3;for(const s of vis)m=Math.max(m,s.v*1.15);
+  ym+=(m-ym)*.1;
+  const y=v=>h-4-(v/ym)*(h-16);
+  cx.font='12px '+getComputedStyle(root).getPropertyValue('--ui');cx.textBaseline='alphabetic';
+  cx.lineWidth=1;cx.strokeStyle=col.dim;cx.fillStyle=col.mut;cx.setLineDash([3,5]);
+  for(const f of [0,.5,1]){const yy=Math.round(y(ym*f))+.5;cx.beginPath();cx.moveTo(0,yy);cx.lineTo(w,yy);cx.stroke();if(f)cx.fillText((ym*f).toFixed(1),2,yy+13)}
+  cx.setLineDash([]);
+  if(vis.length>1){
+    cx.beginPath();
+    vis.forEach((s,i)=>i?cx.lineTo(x(s.t),y(s.v)):cx.moveTo(x(s.t),y(s.v)));
+    cx.strokeStyle=col.acc;cx.lineWidth=2.5;cx.lineJoin='round';cx.stroke();
+    const l=vis[vis.length-1];
+    cx.lineTo(x(l.t),y(0));cx.lineTo(x(vis[0].t),y(0));cx.closePath();
+    const g=cx.createLinearGradient(0,0,0,h);g.addColorStop(0,col.acc);g.addColorStop(1,col.bg);
+    cx.globalAlpha=.28;cx.fillStyle=g;cx.fill();cx.globalAlpha=1;
+    if(st==='running'){cx.beginPath();cx.arc(x(l.t),y(l.v),4.5,0,7);cx.fillStyle=col.acc;cx.fill()}
+  }
+}
+function loop(now){
+  if(st==='running'){
+    const e=now-t0;
+    if(mode!=='live'&&e>=dur())finish();
+    else{
+      while(times.length&&times[0]<now-W)times.shift();
+      const r=times.length/(Math.min(W,Math.max(e,1000))/1000);
+      disp+=(r-disp)*.18;
+      if(e>1000&&disp>peak){peak=disp;if(mode==='live'&&peak>(best.live||0)){best.live=peak;dirty=1}}
+      if(now-lastS>=50){S.push({t:now,v:disp});lastS=now;if(S.length>260)S.shift()}
+      upd(now);
+    }
+  }
+  paint(now);
+  requestAnimationFrame(loop);
+}
+
+addEventListener('keydown',e=>{
+  if(e.ctrlKey||e.metaKey||e.altKey)return;
+  const k=e.key;
+  if(k==='Escape'){reset();return}
+  if(st==='done'){
+    if((k==='Enter'||k===' '||k==='Tab')&&performance.now()-doneAt>350&&!(e.target.tagName==='BUTTON'&&k!=='Tab')){e.preventDefault();reset()}
+    return;
+  }
+  if(k.length===1&&k>='0'&&k<='9'){e.preventDefault();if(!e.repeat)press(k)}
+});
+cap.addEventListener('input',()=>{const v=cap.value;cap.value='';for(const c of v)if(c>='0'&&c<='9')press(c)});
+stage.addEventListener('click',()=>cap.focus({preventScroll:true}));
+$('again').addEventListener('click',reset);
+document.querySelectorAll('.modes button').forEach(b=>b.addEventListener('click',()=>{
+  mode=b.dataset.m==='live'?'live':+b.dataset.m;
+  document.querySelectorAll('.modes button').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  reset();cap.focus({preventScroll:true});
+}));
+const eff=()=>root.dataset.theme||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+$('theme').addEventListener('click',()=>{
+  root.dataset.theme=eff()==='dark'?'light':'dark';
+  try{localStorage.setItem('t176',root.dataset.theme)}catch(e){}
+  readCol();
+});
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readCol);
+addEventListener('resize',size);
+addEventListener('pagehide',()=>{if(dirty)save()});
+if(document.fonts)document.fonts.ready.then(readCol);
+
+readCol();size();reset();
+cap.focus({preventScroll:true});
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
